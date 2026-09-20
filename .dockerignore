@@ -25,3 +25,5 @@ data/backups
 .vscode
 *.swp
 *~
+
+*.backup*

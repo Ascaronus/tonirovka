@@ -1,0 +1,37 @@
+DirectoryIndex index.php
+# Запрет доступа к служебным PHP-файлам (не должны вызываться напрямую по URL)
+<Files "config.php">
+    Require all denied
+</Files>
+<Files "load_env.php">
+    Require all denied
+</Files>
+<Files "csrf_functions.php">
+    Require all denied
+</Files>
+<Files "logging_functions.php">
+    Require all denied
+</Files>
+<Files "lang_functions.php">
+    Require all denied
+</Files>
+<Files "bootstrap.php">
+    Require all denied
+</Files>
+<Files "sitemap_helper.php">
+    Require all denied
+</Files>
+<Files "header.php">
+    Require all denied
+</Files>
+<Files "footer.php">
+    Require all denied
+</Files>
+
+<FilesMatch "^(?:\.env(?:\..*)?|logs_config\.php)$">
+    Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow"
+    Header always set Cache-Control "no-store"
+</IfModule>

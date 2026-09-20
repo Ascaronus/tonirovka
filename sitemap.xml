@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://tonirovka.kh.ua/</loc>
-    <lastmod>2026-03-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="uk" href="https://tonirovka.kh.ua/"/>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://tonirovka.kh.ua/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://tonirovka.kh.ua/"/>
+    <lastmod>2026-09-20</lastmod>
   </url>
 </urlset>

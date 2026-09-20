@@ -1,0 +1,33 @@
+name: SEO and redirect checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate static content
+        run: |
+          python3 tests/check_seo.py
+          node --check js/main.js
+      - name: Start actual Apache and PHP
+        run: |
+          docker build -f tests/Dockerfile -t tonirovka-seo-test .
+          docker run -d --name seo-test -p 127.0.0.1:8080:80 tonirovka-seo-test
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then break; fi
+            sleep 1
+          done
+      - name: PHP syntax and sitemap generation
+        run: |
+          docker exec seo-test sh -c 'find /var/www/html/admin -name "*.php" -exec php -l {} \; > /tmp/lint.log; cat /tmp/lint.log; ! grep -E "Parse error|Errors parsing" /tmp/lint.log'
+          docker exec seo-test php -r 'require "/var/www/html/admin/sitemap_helper.php"; foreach ([false,true] as $images) { $xml = buildSiteSitemap($images); $dom = new DOMDocument(); if (!$dom->loadXML($xml)) { exit(1); } } if (!updateSitemapLastmod()) { exit(1); }'
+      - name: HTTP statuses, redirects, private files and assets
+        run: python3 tests/check_seo.py --http http://127.0.0.1:8080
+      - name: Apache logs on failure
+        if: failure()
+        run: docker logs seo-test || true

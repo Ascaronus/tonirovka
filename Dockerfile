@@ -1,7 +1,7 @@
 FROM php:8.2-apache
 
 # Включаем mod_rewrite и mod_ssl
-RUN a2enmod rewrite ssl
+RUN a2enmod rewrite ssl headers expires deflate
 
 # Разрешаем .htaccess использовать директивы
 RUN sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf

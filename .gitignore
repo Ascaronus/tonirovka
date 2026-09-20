@@ -1,3 +1,17 @@
-# Секреты (никогда не коммитить)
+# Secrets and local runtime state
 .env
-admin/.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+/data/*
+!/data/.htaccess
+!/data/backups/
+/data/backups/*
+!/data/backups/.gitkeep
+*.log
+*.bak
+*.tmp
+*.backup*
+__pycache__/
