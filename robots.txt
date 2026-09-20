@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /data/
+Disallow: /tmp/
+Disallow: /*.log
+Disallow: /*.bak
+Disallow: /*.tmp
+Disallow: /*.backup
+
+# Sitemaps
+Sitemap: https://tonirovka.kh.ua/sitemap.xml
+Sitemap: https://tonirovka.kh.ua/image-sitemap.xml

@@ -1,0 +1,23 @@
+# Создайте файл admin/.env по образцу admin/.env.example и заполните значения.
+# Для Docker передайте переменные через env_file или environment ниже.
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./:/var/www/html
+    env_file:
+      - ./admin/.env
+    environment:
+      - DB_HOST=${DB_HOST:-localhost}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DATABASE=${DB_DATABASE:-}
+      - DB_USERNAME=${DB_USERNAME:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH:-}
+    restart: unless-stopped
+
