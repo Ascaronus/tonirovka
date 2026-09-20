@@ -31,6 +31,7 @@ const span = document.getElementsByClassName('close')[0];
 function openModal(img) {
     modal.style.display = "block";
     modalImg.src = img.src;
+    modalImg.alt = img.alt;
     slideIndex = Array.from(images).indexOf(img) + 1;
 }
 
@@ -42,6 +43,7 @@ function showSlides(n) {
     if (n > images.length) {slideIndex = 1}
     if (n < 1) {slideIndex = images.length}
     modalImg.src = images[slideIndex-1].src;
+    modalImg.alt = images[slideIndex-1].alt;
 }
 
 span.onclick = function() {

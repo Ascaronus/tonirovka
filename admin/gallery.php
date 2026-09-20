@@ -86,7 +86,7 @@ function updateIndexHtml($gallery) {
     if (!$html_content) return false;
     
     // Find the gallery section - corrected pattern
-    $gallery_pattern = '/(<section[^>]*id="gallery"[^>]*>.*?<div[^>]*class="gallery"[^>]*>)(.*?)(<\/div>\s*<\/section>)/s';
+    $gallery_pattern = '/(<section[^>]*id="gallery"[^>]*>.*?<div[^>]*class="gallery"[^>]*>)(.*?)(<\/div>\s*<\/div>\s*<\/section>)/s';
     
     if (preg_match($gallery_pattern, $html_content, $matches)) {
         $section_start = $matches[1];
@@ -110,7 +110,9 @@ function updateIndexHtml($gallery) {
         }
         
         // Replace the gallery content
-        $new_html = preg_replace($gallery_pattern, $section_start . $new_gallery . $section_end, $html_content);
+        $new_html = preg_replace_callback($gallery_pattern, function ($match) use ($new_gallery) {
+            return $match[1] . $new_gallery . $match[3];
+        }, $html_content, 1);
         
         // Save the updated HTML
         $result = file_put_contents(INDEX_HTML_PATH, $new_html);

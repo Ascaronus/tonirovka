@@ -26,6 +26,11 @@ assert sum(t == 'h1' for t, _ in page.tags) == 1, 'Expected one H1'
 canonicals = [a['href'] for t,a in page.tags if t == 'link' and a.get('rel') == 'canonical']
 assert canonicals == [ORIGIN + '/'], canonicals
 assert not any(a.get('hreflang') for _,a in page.tags), 'No separate language URLs exist'
+# Informative images, including the gallery viewer, need a source and an alt.
+for tag, attrs in page.tags:
+    if tag == 'img':
+        assert attrs.get('src') or attrs.get('srcset'), attrs
+        assert attrs.get('alt', '').strip(), attrs
 assets = set()
 for tag, a in page.tags:
     url = a.get('src') if tag in ('img', 'script') else a.get('href') if tag in ('a','link') else None
