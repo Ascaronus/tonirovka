@@ -609,3 +609,11 @@ footer {
 .prev:hover, .next:hover {
     background-color: rgba(0,0,0,0.8);
 }
+/* Practical selection guide, separate from editable product cards. */
+.window-film-guide { background: #f5f7fa; }
+.window-film-guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.window-film-guide-grid article { padding: 24px; background: #fff; border-radius: 8px; }
+.window-film-guide-grid h3 { margin: 0 0 12px; color: #0066cc; }
+.window-film-guide-grid p { margin: 0; line-height: 1.7; }
+.window-film-guide-links { margin-top: 24px; line-height: 1.8; }
+@media (max-width: 700px) { .window-film-guide-grid { grid-template-columns: 1fr; } }
