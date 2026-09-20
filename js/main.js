@@ -386,7 +386,9 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.forEach(el => {
             const translation = el.getAttribute(`data-lang-${lang}`);
             if (translation) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                if (el.closest('#window-film-guide')) {
+                    el.textContent = translation;
+                } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     el.value = translation;
                 } else if (el.tagName === 'P' && el.querySelector('a')) {
                     const linkElement = el.querySelector('a');
@@ -455,7 +457,9 @@ document.addEventListener('DOMContentLoaded', function() {
         elements.forEach(el => {
             const translation = el.getAttribute(`data-lang-${lang}`);
             if (translation) {
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                if (el.closest('#window-film-guide')) {
+                    el.textContent = translation;
+                } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     el.value = translation;
                 } else if (el.tagName === 'P' && el.querySelector('a')) {
                     // Обработка абзацев со ссылками

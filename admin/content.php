@@ -1085,6 +1085,7 @@ if (isset($_GET['error'])) {
             <a href="index.php">📊 Главная</a>
             <a href="prices.php">💰 Цены</a>
             <a href="gallery.php">🖼️ Галерея</a>
+            <a href="guide.php">Выбор и защита плёнкой</a>
             <a href="films.php">🎨 Пленки</a>
             <a href="content.php">📝 Контент</a>
             <a href="seo-auto.php">🚀 SEO Автоматика</a>

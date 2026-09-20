@@ -26,6 +26,8 @@ jobs:
         run: |
           docker exec seo-test sh -c 'find /var/www/html/admin -name "*.php" -exec php -l {} \; > /tmp/lint.log; cat /tmp/lint.log; ! grep -E "Parse error|Errors parsing" /tmp/lint.log'
           docker exec seo-test php -r 'require "/var/www/html/admin/sitemap_helper.php"; foreach ([false,true] as $images) { $xml = buildSiteSitemap($images); $dom = new DOMDocument(); if (!$dom->loadXML($xml)) { exit(1); } } if (!updateSitemapLastmod()) { exit(1); }'
+      - name: Guide editor round-trip
+        run: docker exec seo-test php /var/www/html/tests/check_guide.php
       - name: HTTP statuses, redirects, private files and assets
         run: python3 tests/check_seo.py --http http://127.0.0.1:8080
       - name: Apache logs on failure
