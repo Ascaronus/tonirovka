@@ -76,11 +76,11 @@ function extractCurrentContent() {
     }
     
     // Extract contact information
-    $phone_pattern = '/Телефон: \+3 \(050\) 850-20-40/';
+    $phone_pattern = '/Телефон:\s*(\+[^<"\r\n]+)/u';
     $email_pattern = '/tonirovka\.kh\.ua@gmail\.com/';
     $address_pattern = '/Адреса: Харків, проспект Перемоги, 89/';
     
-    $phone = preg_match($phone_pattern, $html_content) ? '+3 (050) 850-20-40' : '';
+    $phone = preg_match($phone_pattern, $html_content, $phone_match) ? trim($phone_match[1]) : '';
     $email = preg_match($email_pattern, $html_content) ? 'tonirovka.kh.ua@gmail.com' : '';
     $address_uk = preg_match($address_pattern, $html_content) ? 'Харків, проспект Перемоги, 89' : '';
     $address_ru = 'Харьков, проспект Победы, 89';
@@ -627,7 +627,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     
     $content['contacts'] = [
-        'phone' => $_POST['phone'],
+        'phone' => str_replace('+3 (050) 850-20-40', '+38 (050) 850-20-40', $_POST['phone']),
         'email' => $_POST['email'],
         'address_uk' => $_POST['address_uk'],
         'address_ru' => $_POST['address_ru'],

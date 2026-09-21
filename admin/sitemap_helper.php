@@ -77,7 +77,8 @@ function buildSiteSitemap($includeImages = false, $lastmod = null) {
 
 /** Called after an actual content edit, not a monitoring run. */
 function updateSitemapLastmod() {
-    $ok = true;
+    require_once __DIR__ . '/business_schema.php';
+    $ok = updateBusinessSchema();
     foreach (['sitemap.xml' => false, 'image-sitemap.xml' => true] as $filename => $images) {
         $xml = buildSiteSitemap($images, date('Y-m-d'));
         if (file_put_contents(sitemapRoot() . '/' . $filename, $xml, LOCK_EX) === false) {

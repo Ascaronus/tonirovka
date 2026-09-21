@@ -36,6 +36,6 @@ DirectoryIndex index.php
     Header always set Cache-Control "no-store"
 </IfModule>
 
-<FilesMatch "^(?:nav|contact_stats_store|guide_helper)\.php$">
+<FilesMatch "^(?:nav|contact_stats_store|guide_helper|business_schema)\.php$">
     Require all denied
 </FilesMatch>

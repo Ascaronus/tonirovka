@@ -53,6 +53,16 @@ for filename in ('sitemap.xml','image-sitemap.xml'):
         assert (ROOT / unquote(p.path.lstrip('/'))).is_file(), e.text
 for p in (ROOT / 'langs').glob('*.json'): json.loads(p.read_text())
 assert 'Disallow: /\n' not in (ROOT/'robots.txt').read_text()
+businesses = [b for b in page.json_blocks if b.get('@type') in ('LocalBusiness', 'HomeAndConstructionBusiness')]
+assert len(businesses) == 1, 'One business entity per page'
+business = businesses[0]
+assert business['telephone'].startswith('+380')
+assert business['address']['addressLocality'] == 'Харків'
+for offer in business['hasOfferCatalog']['itemListElement']:
+    price = offer.get('priceSpecification')
+    if price:
+        assert isinstance(price['minPrice'], (int, float)) and price['minPrice'] <= price['maxPrice']
+        assert price['priceCurrency'] == 'UAH' and price['unitCode'] == 'MTK'
 print(f'Static checks passed: {len(assets)} local assets, {len(page.json_blocks)} JSON-LD blocks, both sitemaps and translations.')
 
 parser = argparse.ArgumentParser(); parser.add_argument('--http'); args = parser.parse_args()

@@ -33,12 +33,12 @@ function generateLangFiles($pdo) {
                     'description' => $row['content'] ?? ''
                 ];
             } else if ($section === 'contacts') {
-                $contacts_data = json_decode($row['content'], true);
+                $contacts_data = json_decode(str_replace('+3 (050) 850-20-40', '+38 (050) 850-20-40', $row['content']), true);
                 if ($contacts_data) {
                     $translations[$lang]['contacts'] = $contacts_data;
                 }
             } else if ($section === 'footer') {
-                $footer_data = json_decode($row['content'], true);
+                $footer_data = json_decode(str_replace('+3 (050) 850-20-40', '+38 (050) 850-20-40', $row['content']), true);
                 if ($footer_data) {
                     $translations[$lang]['footer'] = $footer_data;
                 }
