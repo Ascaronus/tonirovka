@@ -1,13 +1,12 @@
 {
     "contacts": {
         "phone": "+38 (050) 850-20-40",
-        "email": "tonirovka.kh.ua@gmail.com",
         "address_uk": "Харків, проспект Перемоги, 89",
         "address_ru": "Харьков, проспект Победы, 89",
-        "facebook": "https:\/\/www.facebook.com\/share\/g\/1BTLa9rgcs\/",
-        "instagram": "https:\/\/www.instagram.com\/tonirovka.kh.ua?igsh=MXJrODF0dDg1bjBmZQ==",
-        "viber": "viber:\/\/chat?number=+380508502040",
-        "telegram": "https:\/\/t.me\/udav79"
+        "facebook": "https://www.facebook.com/share/g/1BTLa9rgcs/",
+        "instagram": "https://www.instagram.com/tonirovka.kh.ua?igsh=MXJrODF0dDg1bjBmZQ==",
+        "viber": "viber://chat?number=+380508502040",
+        "telegram": "https://t.me/udav79"
     },
     "faq": {
         "faq_1": {
@@ -166,7 +165,6 @@
     },
     "common": {
         "phone_label": "Телефон:",
-        "email_label": "Email:",
         "address_label": "Адрес:"
     }
 }

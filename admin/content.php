@@ -284,25 +284,23 @@ function updateIndexHtml($content) {
     // Target only the main contacts section, not footer
     $phone_pattern = '/<div class="contact-details">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>/s';
     $email_pattern = '/<div class="contact-details">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>[^<]*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a[^>]*href="mailto:[^"]*">(?:[^<]*|<img[^>]*>)<\/a><\/p>/s';
-    $address_pattern = '/<div class="contact-details">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>[^<]*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a[^>]*href="mailto:[^"]*">(?:[^<]*|<img[^>]*>)<\/a><\/p>[^<]*<p[^>]*data-lang-uk="Адреса: [^"]*"[^>]*data-lang-ru="Адрес: [^"]*"[^>]*>Адреса: [^<]*<\/p>/s';
+    $address_pattern = '~<div class="contact-details">.*?</div>~s';
     
     // Replace the entire contacts section with new data
     $new_contacts_section = '<div class="contact-details">' . "\n" .
                            '                <p data-lang-uk="Телефон: ' . $content['contacts']['phone'] . '" data-lang-ru="Телефон: ' . $content['contacts']['phone'] . '">Телефон: ' . $content['contacts']['phone'] . '</p>' . "\n" .
-                           '                <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: <a href="mailto:' . $content['contacts']['email'] . '">' . $content['contacts']['email'] . '</a></p>' . "\n" .
                            '                <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
                            '            </div>';
     
     $html_content = preg_replace_callback($address_pattern, fn() => $new_contacts_section, $html_content);
     
     // Update footer contacts section - more precise pattern that preserves structure
-    $footer_contacts_pattern = '/<div class="footer-info">\s*<h3[^>]*data-lang-uk="Контакти"[^>]*data-lang-ru="Контакты"[^>]*>Контакти<\/h3>\s*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>\s*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a[^>]*href="mailto:[^"]*">(?:[^<]*|<img[^>]*>)<\/a><\/p>\s*<p[^>]*data-lang-uk="Адреса: [^"]*"[^>]*data-lang-ru="Адрес: [^"]*"[^>]*>Адреса: [^<]*<\/p>\s*<\/div>/s';
+    $footer_contacts_pattern = '~<div class="footer-info">\s*<h3[^>]*data-lang-uk="Контакти"[^>]*>.*?</div>~s';
     
     // Replace only the contact information, preserving the div structure
     $new_footer_contacts = '<div class="footer-info">' . "\n" .
                           '                    <h3 data-lang-uk="Контакти" data-lang-ru="Контакты">Контакти</h3>' . "\n" .
                           '                    <p data-lang-uk="Телефон: ' . $content['contacts']['phone'] . '" data-lang-ru="Телефон: ' . $content['contacts']['phone'] . '">Телефон: ' . $content['contacts']['phone'] . '</p>' . "\n" .
-                          '                    <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: <a href="mailto:' . $content['contacts']['email'] . '">' . $content['contacts']['email'] . '</a></p>' . "\n" .
                           '                    <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
                           '                </div>';
     
@@ -1211,8 +1209,8 @@ if (isset($_GET['error'])) {
                                 <input type="text" name="phone" value="<?php echo htmlspecialchars($content['contacts']['phone'] ?? ''); ?>" required>
                             </div>
                             <div class="form-group">
-                                <label>Email:</label>
-                                <input type="text" name="email" value="<?php echo htmlspecialchars($content['contacts']['email'] ?? ''); ?>" required>
+                                <label>Служебный email (на сайте не публикуется):</label>
+                                <input type="text" name="email" value="<?php echo htmlspecialchars($content['contacts']['email'] ?? ''); ?>">
                             </div>
                             <div class="form-group">
                                 <label>Адрес (UA):</label>

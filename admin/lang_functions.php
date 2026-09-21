@@ -36,6 +36,7 @@ function generateLangFiles($pdo) {
             } else if ($section === 'contacts') {
                 $contacts_data = json_decode(str_replace('+3 (050) 850-20-40', '+38 (050) 850-20-40', $row['content']), true);
                 if ($contacts_data) {
+                    unset($contacts_data['email']); // Keep the service address private in the database.
                     $translations[$lang]['contacts'] = $contacts_data;
                 }
             } else if ($section === 'footer') {
@@ -143,12 +144,10 @@ function generateLangFiles($pdo) {
         
         $translations['uk']['common'] = [
             'phone_label' => 'Телефон:',
-            'email_label' => 'Email:',
             'address_label' => 'Адреса:'
         ];
         $translations['ru']['common'] = [
             'phone_label' => 'Телефон:',
-            'email_label' => 'Email:',
             'address_label' => 'Адрес:'
         ];
         

@@ -288,28 +288,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Обновляем email
-            const emailLinks = document.querySelectorAll('#contacts a[href^="mailto:"]');
-            emailLinks.forEach(link => {
-                if (t.contacts.email) {
-                    link.href = 'mailto:' + t.contacts.email;
-                    link.textContent = t.contacts.email;
-                    link.setAttribute('data-i18n-loaded', 'true');
-                }
-            });
-            
-            const emailParas = document.querySelectorAll('#contacts p');
-            emailParas.forEach(p => {
-                const text = p.textContent.trim();
-                if (text.includes('Email:') && p.querySelector('a[href^="mailto:"]')) {
-                    const emailLabel = t.common?.email_label || 'Email:';
-                    p.innerHTML = emailLabel + ' <a href="mailto:' + t.contacts.email + '">' + t.contacts.email + '</a>';
-                    p.setAttribute('data-i18n-loaded', 'true');
-                }
-            });
-            
+            const contactParas = document.querySelectorAll('#contacts p');
+
             // Обновляем адрес
-            emailParas.forEach(p => {
+            contactParas.forEach(p => {
                 const text = p.textContent.trim();
                 if ((text.includes('Адреса:') || text.includes('Адрес:')) && !p.hasAttribute('data-i18n-loaded')) {
                     const addressLabel = t.common?.address_label || 'Адреса:';

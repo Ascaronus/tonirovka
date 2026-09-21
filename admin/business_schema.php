@@ -12,11 +12,10 @@ function syncBusinessSchemaHtml($html) {
     }
     if (!$base) return $html;
     $base['@type']='HomeAndConstructionBusiness'; $base['@id']='https://tonirovka.kh.ua/#business';
-    unset($base['geo'], $base['address']['postalCode']); // Await a verified business map pin / postal code.
+    unset($base['email'], $base['geo'], $base['address']['postalCode']); // Await a verified business map pin / postal code.
     foreach ($xp->query('//*[@id="contacts"]//p') as $p) {
         $text=trim($p->textContent);
         if (preg_match('/^Телефон:\s*(.+)$/u',$text,$m)) $base['telephone']='+'.preg_replace('/\D/','',$m[1]);
-        if (preg_match('/^Email:\s*(.+)$/u',$text,$m)) $base['email']=trim($m[1]);
         if (preg_match('/^Адреса:\s*([^,]+),\s*(.+)$/u',$text,$m)) $base['address']=['@type'=>'PostalAddress','addressLocality'=>trim($m[1]),'streetAddress'=>trim($m[2]),'addressCountry'=>'UA'];
     }
     $offers=[];
