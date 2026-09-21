@@ -15,6 +15,7 @@ jobs:
           python3 tests/check_seo.py
           node --check js/main.js
           node --check js/contact-stats.js
+          node tests/check_contact_client.cjs
       - name: Start actual Apache and PHP
         run: |
           docker build -f tests/Dockerfile -t tonirovka-seo-test .
