@@ -24,6 +24,8 @@ define('INDEX_HTML_PATH', ROOT_DIR . '/index.html');
 
 // Функция для создания подключения к БД
 function getDBConnection() {
+    static $connection = null;
+    if ($connection instanceof PDO) return $connection;
     try {
         $pdo = new PDO(
             "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_DATABASE . ";charset=utf8mb4",
@@ -35,6 +37,7 @@ function getDBConnection() {
                 PDO::ATTR_EMULATE_PREPARES => false
             ]
         );
+        $connection = $pdo;
         return $pdo;
     } catch (PDOException $e) {
         error_log("Ошибка подключения к БД: " . $e->getMessage());

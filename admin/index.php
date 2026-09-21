@@ -14,7 +14,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
             $error = 'Недействительная форма. Обновите страницу и попробуйте снова.';
         } elseif (!$admin_password_hash) {
             $error = 'Не настроен .env: задайте ADMIN_PASSWORD_HASH (см. admin/.env.example).';
-        } elseif ($_POST['username'] === $admin_username && password_verify($_POST['password'], $admin_password_hash)) {
+        } elseif (is_string($_POST['username']) && is_string($_POST['password']) && $_POST['username'] === $admin_username && password_verify($_POST['password'], $admin_password_hash)) {
             session_regenerate_id(true);
             $_SESSION['admin_logged_in'] = true;
         } else {

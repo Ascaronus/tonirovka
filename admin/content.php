@@ -7,6 +7,7 @@ if (isset($_POST['active_tab'])) {
     $_SESSION['active_tab'] = $_POST['active_tab'];
 }
 $active_tab = $_GET['tab'] ?? $_SESSION['active_tab'] ?? 'hero';
+if (!is_string($active_tab) || !in_array($active_tab, ['hero','contacts','faq','footer'], true)) $active_tab = 'hero';
 
 $content_file = DATA_DIR . '/content.json';
 
@@ -171,7 +172,7 @@ function extractCurrentContent() {
             }
             
             // Извлекаем ответ
-            $answer_pattern = '/<div itemprop="text"[^>]*data-lang-uk="([^"]*)"[^>]*data-lang-ru="([^"]*)"[^>]*>([^<]*)<\/div>/s';
+            $answer_pattern = '/<div[^>]*data-lang-uk="([^"]*)"[^>]*data-lang-ru="([^"]*)"[^>]*>([^<]*)<\/div>/s';
             if (preg_match($answer_pattern, $item_content, $matches)) {
                 $faq_questions[$faq_key]['answer_uk'] = trim($matches[1]);
                 $faq_questions[$faq_key]['answer_ru'] = trim($matches[2]);
@@ -245,6 +246,9 @@ function extractCurrentContent() {
 
 // Function to update index.html with new content
 function updateIndexHtml($content) {
+    foreach ($content['contacts'] as &$value) $value = htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    unset($value);
+
     $html_content = file_get_contents(INDEX_HTML_PATH);
     if (!$html_content) {
         error_log("DEBUG: Failed to read index.html");
@@ -256,25 +260,25 @@ function updateIndexHtml($content) {
     
     // Replace hero title
     $new_hero_title = '<h1 data-lang-uk="' . htmlspecialchars($content['hero']['title_uk']) . '" data-lang-ru="' . htmlspecialchars($content['hero']['title_ru']) . '">' . htmlspecialchars($content['hero']['title_uk']) . '</h1>';
-    $html_content = preg_replace($hero_title_pattern, $new_hero_title, $html_content);
+    $html_content = preg_replace_callback($hero_title_pattern, fn() => $new_hero_title, $html_content);
     
     // Replace hero description - look for the first paragraph with data attributes in hero section
     $hero_desc_pattern = '/<div class="hero-content">[^<]*<h1[^>]*>[^<]*<\/h1>[^<]*<p[^>]*data-lang-uk="([^"]*)"[^>]*data-lang-ru="([^"]*)"[^>]*>([^<]*)<\/p>/s';
     $new_hero_desc = '<div class="hero-content">' . "\n" . 
                      '                <h1 data-lang-uk="' . htmlspecialchars($content['hero']['title_uk']) . '" data-lang-ru="' . htmlspecialchars($content['hero']['title_ru']) . '">' . htmlspecialchars($content['hero']['title_uk']) . '</h1>' . "\n" .
                      '                <p data-lang-uk="' . htmlspecialchars($content['hero']['description_uk']) . '" data-lang-ru="' . htmlspecialchars($content['hero']['description_ru']) . '">' . htmlspecialchars($content['hero']['description_uk']) . '</p>';
-    $html_content = preg_replace($hero_desc_pattern, $new_hero_desc, $html_content);
+    $html_content = preg_replace_callback($hero_desc_pattern, fn() => $new_hero_desc, $html_content);
     
     // Update footer description - more specific pattern for footer
     // This pattern now captures the parts around the <p> tag to reconstruct the block
     $footer_desc_pattern = '/(<div class="footer-info">\s*<h3>tonirovka\.kh\.ua<\/h3>\s*)(<p[^>]*data-lang-uk="[^"]*"[^>]*data-lang-ru="[^"]*"[^>]*>.*?<\/p>)(\s*<div class="social-links">.*?<\/div>\s*<\/div>)/s';
     
     // Use the descriptions as they are - they should already contain <br> tags
-    $uk_desc_display = $content['footer']['description_uk'];
-    $ru_desc_display = $content['footer']['description_ru'];
+    $uk_desc_display = htmlspecialchars($content['footer']['description_uk']);
+    $ru_desc_display = htmlspecialchars($content['footer']['description_ru']);
     
-    $new_footer_desc = '$1' . '<p data-lang-uk="' . htmlspecialchars($content['footer']['description_uk']) . '" data-lang-ru="' . htmlspecialchars($content['footer']['description_ru']) . '">' . $uk_desc_display . '</p>' . '$3';
-    $html_content = preg_replace($footer_desc_pattern, $new_footer_desc, $html_content);
+    $new_footer_desc = '<p data-lang-uk="' . htmlspecialchars($content['footer']['description_uk']) . '" data-lang-ru="' . htmlspecialchars($content['footer']['description_ru']) . '">' . $uk_desc_display . '</p>';
+    $html_content = preg_replace_callback($footer_desc_pattern, fn($m) => $m[1] . $new_footer_desc . $m[3], $html_content);
     
     // Update contact information - more specific patterns to target correct elements
     // Target only the main contacts section, not footer
@@ -289,7 +293,7 @@ function updateIndexHtml($content) {
                            '                <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
                            '            </div>';
     
-    $html_content = preg_replace($address_pattern, $new_contacts_section, $html_content);
+    $html_content = preg_replace_callback($address_pattern, fn() => $new_contacts_section, $html_content);
     
     // Update footer contacts section - more precise pattern that preserves structure
     $footer_contacts_pattern = '/<div class="footer-info">\s*<h3[^>]*data-lang-uk="Контакти"[^>]*data-lang-ru="Контакты"[^>]*>Контакти<\/h3>\s*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>\s*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a href="mailto:[^"]*">[^<]*<\/a><\/p>\s*<p[^>]*data-lang-uk="Адреса: [^"]*"[^>]*data-lang-ru="Адрес: [^"]*"[^>]*>Адреса: [^<]*<\/p>\s*<\/div>/s';
@@ -302,7 +306,7 @@ function updateIndexHtml($content) {
                           '                    <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
                           '                </div>';
     
-    $html_content = preg_replace($footer_contacts_pattern, $new_footer_contacts, $html_content);
+    $html_content = preg_replace_callback($footer_contacts_pattern, fn() => $new_footer_contacts, $html_content);
     
     // Update footer working hours section
     $footer_hours_pattern = '/<div class="footer-info">\s*<h3[^>]*data-lang-uk="Час роботи"[^>]*data-lang-ru="Время работы"[^>]*>Час роботи<\/h3>\s*<p[^>]*data-lang-uk="[^"]*"[^>]*data-lang-ru="[^"]*"[^>]*>[^<]*<\/p>\s*<p[^>]*data-lang-uk="[^"]*"[^>]*data-lang-ru="[^"]*"[^>]*>[^<]*<\/p>\s*<p[^>]*data-lang-uk="[^"]*"[^>]*data-lang-ru="[^"]*"[^>]*>[^<]*<\/p>\s*<\/div>/s';
@@ -314,7 +318,7 @@ function updateIndexHtml($content) {
                         '                    <p data-lang-uk="' . $content['footer']['working_hours_uk']['sunday'] . '" data-lang-ru="' . $content['footer']['working_hours_ru']['sunday'] . '">' . $content['footer']['working_hours_uk']['sunday'] . '</p>' . "\n" .
                         '                </div>';
     
-    $html_content = preg_replace($footer_hours_pattern, $new_footer_hours, $html_content);
+    $html_content = preg_replace_callback($footer_hours_pattern, fn() => $new_footer_hours, $html_content);
     
     // Update social links in footer
     $social_links_pattern = '/<div class="social-links">\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<\/div>/s';
@@ -332,7 +336,7 @@ function updateIndexHtml($content) {
         $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['telegram']) . '"><i>TG</i></a>' . "\n";
     }
     $new_social_links .= '                    </div>';
-    $html_content = preg_replace($social_links_pattern, $new_social_links, $html_content);
+    $html_content = preg_replace_callback($social_links_pattern, fn() => $new_social_links, $html_content);
 
     // Update social links in contacts section
     $contacts_section_pattern = '/<section id="contacts">(.*?)<\/section>/s';
@@ -348,7 +352,7 @@ function updateIndexHtml($content) {
                                     '                        <p>Facebook</p>' . "\n" .
                                     '                    </div>' . "\n" .
                                     '                </a>';
-            $contacts_content = preg_replace($facebook_contacts_pattern, $new_facebook_contacts, $contacts_content);
+            $contacts_content = preg_replace_callback($facebook_contacts_pattern, fn() => $new_facebook_contacts, $contacts_content);
         }
         
         // Update Instagram in contacts section - replace entire link block
@@ -360,7 +364,7 @@ function updateIndexHtml($content) {
                                      '                        <p>Instagram</p>' . "\n" .
                                      '                    </div>' . "\n" .
                                      '                </a>';
-            $contacts_content = preg_replace($instagram_contacts_pattern, $new_instagram_contacts, $contacts_content);
+            $contacts_content = preg_replace_callback($instagram_contacts_pattern, fn() => $new_instagram_contacts, $contacts_content);
         }
         
         // Update Viber in contacts section - replace entire link block
@@ -372,7 +376,7 @@ function updateIndexHtml($content) {
                                   '                        <p>Viber</p>' . "\n" .
                                   '                    </div>' . "\n" .
                                   '                </a>';
-            $contacts_content = preg_replace($viber_contacts_pattern, $new_viber_contacts, $contacts_content);
+            $contacts_content = preg_replace_callback($viber_contacts_pattern, fn() => $new_viber_contacts, $contacts_content);
         }
         
         // Update Telegram in contacts section - replace entire link block
@@ -384,12 +388,12 @@ function updateIndexHtml($content) {
                                      '                        <p>Telegram</p>' . "\n" .
                                      '                    </div>' . "\n" .
                                      '                </a>';
-            $contacts_content = preg_replace($telegram_contacts_pattern, $new_telegram_contacts, $contacts_content);
+            $contacts_content = preg_replace_callback($telegram_contacts_pattern, fn() => $new_telegram_contacts, $contacts_content);
         }
         
         // Replace the entire contacts section with updated content
         $new_contacts_section = '<section id="contacts">' . $contacts_content . '</section>';
-        $html_content = preg_replace($contacts_section_pattern, $new_contacts_section, $html_content);
+        $html_content = preg_replace_callback($contacts_section_pattern, fn() => $new_contacts_section, $html_content);
     }
     
     // Update banner cache-busting if banner file exists
@@ -420,15 +424,15 @@ function updateIndexHtml($content) {
     if (isset($content['faq'])) {
         $faq_section_pattern = '/<div class="faq-container"[^>]*>(.*?)<\/div>\s*<\/div>\s*<\/section>/s';
         
-        $new_faq_content = '<div class="faq-container" itemscope itemtype="https://schema.org/FAQPage">';
+        $new_faq_content = '<div class="faq-container">';
         
         foreach ($content['faq'] as $faq_key => $question_data) {
             if (strpos($faq_key, 'faq_') === 0 && !empty($question_data['question_uk']) && !empty($question_data['answer_uk'])) {
                 $new_faq_content .= "\n" .
-                    '                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">' . "\n" .
-                    '                    <div class="faq-question" itemprop="name" data-lang-uk="' . htmlspecialchars($question_data['question_uk']) . '" data-lang-ru="' . htmlspecialchars($question_data['question_ru']) . '">' . htmlspecialchars($question_data['question_uk']) . '</div>' . "\n" .
-                    '                    <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">' . "\n" .
-                    '                        <div itemprop="text" data-lang-uk="' . htmlspecialchars($question_data['answer_uk']) . '" data-lang-ru="' . htmlspecialchars($question_data['answer_ru']) . '">' . htmlspecialchars($question_data['answer_uk']) . '</div>' . "\n" .
+                    '                <div class="faq-item">' . "\n" .
+                    '                    <div class="faq-question" data-lang-uk="' . htmlspecialchars($question_data['question_uk']) . '" data-lang-ru="' . htmlspecialchars($question_data['question_ru']) . '">' . htmlspecialchars($question_data['question_uk']) . '</div>' . "\n" .
+                    '                    <div class="faq-answer">' . "\n" .
+                    '                        <div data-lang-uk="' . htmlspecialchars($question_data['answer_uk']) . '" data-lang-ru="' . htmlspecialchars($question_data['answer_ru']) . '">' . htmlspecialchars($question_data['answer_uk']) . '</div>' . "\n" .
                     '                    </div>' . "\n" .
                     '                </div>';
             }
@@ -437,11 +441,11 @@ function updateIndexHtml($content) {
         $new_faq_content .= "\n            </div>";
         
         $new_faq_section = $new_faq_content . "\n        </div>\n    </section>";
-        $html_content = preg_replace($faq_section_pattern, $new_faq_section, $html_content);
+        $html_content = preg_replace_callback($faq_section_pattern, fn() => $new_faq_section, $html_content);
     }
     
     // Save updated HTML
-    $result = file_put_contents(INDEX_HTML_PATH, $html_content) !== false;
+    $result = adminAtomicWrite(INDEX_HTML_PATH, $html_content) !== false;
     return $result;
 }
 
@@ -499,6 +503,7 @@ if ($pdo) {
 }
 
 // Handle form submissions
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !getDBConnection()) adminFail('База данных недоступна. Контент не изменён.',503);
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save') {
     if (!validateCsrf()) {
         $error_message = 'Недействительный запрос (CSRF). Обновите страницу и попробуйте снова.';
@@ -649,7 +654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ],
         'working_hours_ru' => [
             'weekdays' => $_POST['working_hours_weekdays_ru'],
-            'saturday' => $_POST['working_hours_saturday_uk'],
+            'saturday' => $_POST['working_hours_saturday_ru'],
             'sunday' => $_POST['working_hours_sunday_ru']
         ]
     ];
@@ -663,6 +668,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         error_log("DEBUG: DB connection successful for saving");
         
         // Очищаем старые данные
+        $pdo->beginTransaction();
         $pdo->exec("DELETE FROM content");
         
         // Сохраняем новые данные
@@ -717,6 +723,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
             }
         }
+        $pdo->commit();
         $db_saved = true;
     } else {
         writeLog('save_content', 'Ошибка БД: не удалось подключиться', 'error');
@@ -724,7 +731,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
 
     
-    $html_updated = updateIndexHtml($content);
+    $html_updated = $db_saved && updateIndexHtml($content);
     
     $json_generated = false;
     if ($pdo && $db_saved) {

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/admin_runtime.php';
 /**
  * Language Files Generator
  * Генерирует JSON файлы локализации из базы данных
@@ -158,8 +159,8 @@ function generateLangFiles($pdo) {
         $uk_file = $langs_dir . '/uk.json';
         $ru_file = $langs_dir . '/ru.json';
         
-        $uk_saved = file_put_contents($uk_file, $uk_json) !== false;
-        $ru_saved = file_put_contents($ru_file, $ru_json) !== false;
+        $uk_saved = adminAtomicWrite($uk_file, $uk_json) !== false;
+        $ru_saved = adminAtomicWrite($ru_file, $ru_json) !== false;
         
         if ($uk_saved && $ru_saved) {
             if (function_exists('writeLog')) {

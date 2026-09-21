@@ -5,7 +5,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,7 +20,14 @@ jobs:
       - name: Start actual Apache and PHP
         run: |
           docker build -f tests/Dockerfile -t tonirovka-seo-test .
-          docker run -d --name seo-test -p 127.0.0.1:8080:80 tonirovka-seo-test
+          docker network create seo-audit
+          docker run -d --name audit-db --network seo-audit -e MARIADB_ROOT_PASSWORD=test-root-only -e MARIADB_DATABASE=audit -e MARIADB_USER=audit -e MARIADB_PASSWORD=test-db-only mariadb:11.4
+          for i in $(seq 1 60); do
+            if docker exec audit-db mariadb-admin ping -h127.0.0.1 -uroot -ptest-root-only --silent; then break; fi
+            sleep 1
+          done
+          docker run -d --name seo-test --network seo-audit -e DB_HOST=audit-db -e DB_DATABASE=audit -e DB_USERNAME=audit -e DB_PASSWORD=test-db-only -p 127.0.0.1:8080:80 tonirovka-seo-test
+          docker exec seo-test php /var/www/html/tests/seed_admin.php
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8080/ >/dev/null; then break; fi
             sleep 1
@@ -33,6 +40,8 @@ jobs:
         run: |
           docker exec seo-test php /var/www/html/tests/check_guide.php
           docker exec seo-test php /var/www/html/tests/check_business_schema.php
+          docker exec seo-test php /var/www/html/tests/check_seo_tools.php
+          docker exec seo-test php /var/www/html/tests/check_backup_restore.php
       - name: Contact statistics and admin pages
         run: |
           docker exec seo-test php -l /var/www/html/contact-click.php
@@ -45,6 +54,7 @@ jobs:
           npm install --prefix /tmp/float-browser --no-package-lock playwright@1.58.2
           /tmp/float-browser/node_modules/.bin/playwright install --with-deps chromium
           PLAYWRIGHT_MODULE=/tmp/float-browser/node_modules/playwright node tests/check_floating_browser.cjs
+          PLAYWRIGHT_MODULE=/tmp/float-browser/node_modules/playwright node tests/check_admin_browser.cjs
       - name: Apache logs on failure
         if: failure()
         run: docker logs seo-test || true

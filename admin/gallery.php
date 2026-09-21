@@ -46,31 +46,31 @@ function validateGalleryFields($alt_uk, $alt_ru, $title_uk, $title_ru) {
     }
     
     // Check minimum length (at least 10 characters)
-    if (strlen(trim($alt_uk)) < 10) {
+    if (adminTextLength(trim($alt_uk)) < 10) {
         $errors[] = "Alt текст (UA) должен содержать минимум 10 символов";
     }
-    if (strlen(trim($alt_ru)) < 10) {
+    if (adminTextLength(trim($alt_ru)) < 10) {
         $errors[] = "Alt текст (RU) должен содержать минимум 10 символов";
     }
-    if (strlen(trim($title_uk)) < 5) {
+    if (adminTextLength(trim($title_uk)) < 5) {
         $errors[] = "Название (UA) должно содержать минимум 5 символов";
     }
-    if (strlen(trim($title_ru)) < 5) {
+    if (adminTextLength(trim($title_ru)) < 5) {
         $errors[] = "Название (RU) должно содержать минимум 5 символов";
     }
     
     // Check maximum length (not more than 200 characters)
-    if (strlen(trim($alt_uk)) > 200) {
+    if (adminTextLength(trim($alt_uk)) > 200) {
         $errors[] = "Alt текст (UA) не должен превышать 200 символов";
     }
-    if (strlen(trim($alt_ru)) > 200) {
+    if (adminTextLength(trim($alt_ru)) > 200) {
         $errors[] = "Alt текст (RU) не должен превышать 200 символов";
     }
-    if (strlen(trim($title_uk)) > 100) {
-        $errors[] = "Название (UA) не должно превышать 100 символов (длина: " . strlen(trim($title_uk)) . ")";
+    if (adminTextLength(trim($title_uk)) > 100) {
+        $errors[] = "Название (UA) не должно превышать 100 символов (длина: " . adminTextLength(trim($title_uk)) . ")";
     }
-    if (strlen(trim($title_ru)) > 100) {
-        $errors[] = "Название (RU) не должно превышать 100 символов (длина: " . strlen(trim($title_ru)) . ")";
+    if (adminTextLength(trim($title_ru)) > 100) {
+        $errors[] = "Название (RU) не должно превышать 100 символов (длина: " . adminTextLength(trim($title_ru)) . ")";
     }
     
     return $errors;
@@ -115,7 +115,7 @@ function updateIndexHtml($gallery) {
         }, $html_content, 1);
         
         // Save the updated HTML
-        $result = file_put_contents(INDEX_HTML_PATH, $new_html);
+        $result = adminAtomicWrite(INDEX_HTML_PATH, $new_html);
         
         // Принудительно обновляем время модификации index.html для предотвращения кеширования
         if ($result !== false) {
@@ -139,6 +139,10 @@ if ($pdo) {
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$pdo) adminFail('Нет соединения с базой данных. Изменения не сохранены.',503);
+    if (!isset($_POST['action']) || !is_string($_POST['action'])) adminFail('Не указано действие.');
+    if (in_array($_POST['action'], ['edit','delete','replace_image'], true) && (!isset($_POST['index']) || !is_scalar($_POST['index']) || !ctype_digit((string)$_POST['index']) || !isset($gallery[(int)$_POST['index']]))) adminFail('Запись не найдена. Обновите страницу.',404);
+
     if (!validateCsrf()) {
         $error_message = 'Недействительный запрос (CSRF). Обновите страницу и попробуйте снова.';
     } elseif (isset($_POST['action'])) {
@@ -263,10 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error_message = "❌ Файл не является изображением или повреждён.";
                 } else {
                     $old_filepath = $upload_dir . $old_filename;
-                    if (file_exists($old_filepath)) {
-                        unlink($old_filepath);
-                    }
-                    if (move_uploaded_file($new_filename_tmp, $old_filepath)) {
+                    if (adminReplaceUpload($new_filename_tmp, $old_filepath)) {
                         // Принудительно обновляем время модификации файла для cache-busting
                         touch($old_filepath);
                         

@@ -62,6 +62,7 @@ function loadSettingsFromDB($pdo) {
 function saveSettingsToDB($pdo, $settings) {
     try {
         // Очищаем таблицу перед сохранением (оставляем только одну запись)
+        $pdo->beginTransaction();
         $pdo->exec("DELETE FROM settings");
         
         $stmt = $pdo->prepare("INSERT INTO settings (site_title_uk, site_title_ru, site_description_uk, site_description_ru, site_keywords_uk, site_keywords_ru, admin_username, admin_email, google_analytics, google_verification, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -81,6 +82,7 @@ function saveSettingsToDB($pdo, $settings) {
         ];
         
         $result = $stmt->execute($params);
+        $pdo->commit();
         
         if ($result) {
             // Убираем логирование из функции - теперь логирование происходит в основной логике
@@ -95,6 +97,7 @@ function saveSettingsToDB($pdo, $settings) {
         
         return $result;
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
         writeDBErrorLog('Сохранение настроек в БД', $e, "INSERT INTO settings", $params ?? []);
         return false;
     }
@@ -102,6 +105,7 @@ function saveSettingsToDB($pdo, $settings) {
 
 // Загружаем настройки из БД
 $pdo = getDBConnection();
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$pdo && !in_array($_POST['action'] ?? '', ['change_password','delete_backup'], true)) adminFail('База данных недоступна.',503);
 if ($pdo) {
     $settings = loadSettingsFromDB($pdo);
 } else {
@@ -130,99 +134,20 @@ if ($pdo) {
 
 // Функция для обновления index.html из настроек
 function updateIndexHtmlFromSettings($settings) {
-    $index_file = '../index.html';
-    
-    if (!file_exists($index_file)) {
-        // Убираем логирование отсутствия файла - это может быть нормальной ситуацией
-        return false;
-    }
-    
+    require_once __DIR__.'/seo_tools.php';
     try {
-        $content = file_get_contents($index_file);
-        if ($content === false) {
-            // Убираем логирование ошибки чтения файла - это может быть нормальной ситуацией
-            return false;
-        }
-        
-        $original_content = $content;
-        $updates_made = 0;
-        
-        // Обновляем title
-        $new_title = '<title data-lang-uk="' . htmlspecialchars($settings['site']['title_uk']) . '" data-lang-ru="' . htmlspecialchars($settings['site']['title_ru']) . '">' . htmlspecialchars($settings['site']['title_uk']) . '</title>';
-        $content = preg_replace(
-            '/<title[^>]*data-lang-uk="[^"]*"[^>]*data-lang-ru="[^"]*"[^>]*>[^<]*<\/title>/',
-            $new_title,
-            $content
-        );
-        if ($content !== $original_content) $updates_made++;
-        
-        // Обновляем description
-        $new_description = '<meta name="description" data-lang-uk="' . htmlspecialchars($settings['site']['description_uk']) . '" data-lang-ru="' . htmlspecialchars($settings['site']['description_ru']) . '" content="' . htmlspecialchars($settings['site']['description_uk']) . '">';
-        $content = preg_replace(
-            '/<meta name="description"[^>]*data-lang-uk="[^"]*"[^>]*data-lang-ru="[^"]*"[^>]*content="[^"]*"[^>]*>/',
-            $new_description,
-            $content
-        );
-        if ($content !== $original_content) $updates_made++;
-        
-        // Обновляем keywords
-        $new_keywords = '<meta name="keywords" content="' . htmlspecialchars($settings['site']['keywords_uk']) . '">';
-        $content = preg_replace(
-            '/<meta name="keywords"[^>]*content="[^"]*"[^>]*>/',
-            $new_keywords,
-            $content
-        );
-        if ($content !== $original_content) $updates_made++;
-        
-        // Обновляем русские keywords
-        $new_keywords_ru = '<meta name="keywords" lang="ru" content="' . htmlspecialchars($settings['site']['keywords_ru']) . '">';
-        $content = preg_replace(
-            '/<meta name="keywords"[^>]*lang="ru"[^>]*content="[^"]*"[^>]*>/',
-            $new_keywords_ru,
-            $content
-        );
-        if ($content !== $original_content) $updates_made++;
-        
-        // Обновляем Google verification
-        if (!empty($settings['seo']['google_verification'])) {
-            $new_google_verification = '<meta name="google-site-verification" content="' . htmlspecialchars($settings['seo']['google_verification']) . '">';
-            $content = preg_replace(
-                '/<meta name="google-site-verification"[^>]*content="[^"]*"[^>]*>/',
-                $new_google_verification,
-                $content
-            );
-            if ($content !== $original_content) $updates_made++;
-        }
-        
-        $result = file_put_contents($index_file, $content);
-        if ($result !== false) {
-            require_once __DIR__ . '/sitemap_helper.php';
-            updateSitemapLastmod();
-        }
-        
-        if ($result !== false) {
-            // Убираем логирование успешного обновления - это происходит при каждом сохранении
-            return true;
-        } else {
-            // Логируем только критические ошибки записи файла
-            writeWarningLog('Обновление index.html', 'Не удалось записать изменения в файл', [
-                'file' => $index_file,
-                'function' => 'updateIndexHtmlFromSettings',
-                'updates_made' => $updates_made,
-                'file_permissions' => substr(sprintf('%o', fileperms($index_file)), -4)
-            ]);
-            return false;
-        }
-    } catch (Exception $e) {
-        // Логируем только критические исключения при обновлении файла
-        writeWarningLog('Обновление index.html', 'Исключение при обновлении файла: ' . $e->getMessage(), [
-            'file' => $index_file,
-            'function' => 'updateIndexHtmlFromSettings',
-            'exception' => get_class($e),
-            'line' => $e->getLine()
-        ]);
-        return false;
-    }
+        $meta=[];foreach(['uk','ru'] as $lang)$meta[$lang]=['title'=>$settings['site']['title_'.$lang],'description'=>$settings['site']['description_'.$lang]];
+        $html=seoApplyMeta(file_get_contents(INDEX_HTML_PATH),$meta);
+        $verification=trim($settings['seo']['google_verification']??'');
+        $html=preg_replace('~<meta\b[^>]*name="google-site-verification"[^>]*>~','',$html);
+        if($verification!=='')$html=str_replace('</head>','<meta name="google-site-verification" content="'.adminEscape($verification).'">'."\n</head>",$html);
+        $ga=trim($settings['seo']['google_analytics']??'');
+        if($ga!==''&&!preg_match('/^G-[A-Z0-9]+$/D',$ga))throw new RuntimeException('Укажите идентификатор GA4 в формате G-XXXXXXXX.');
+        $html=preg_replace('~<script\b[^>]*src="https://www\.googletagmanager\.com/gtag/js\?id=[^"]*"[^>]*>\s*</script>~','',$html);
+        $html=preg_replace('~<script>\s*window\.dataLayer.*?</script>~s','',$html);
+        if($ga!=='')$html=str_replace('</head>','<script async src="https://www.googletagmanager.com/gtag/js?id='.$ga.'"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","'.$ga.'");</script></head>',$html);
+        adminAtomicWrite(INDEX_HTML_PATH,$html);return true;
+    } catch(Throwable $e){error_log($e->getMessage());return false;}
 }
 
 // Функция для извлечения данных из index.html
@@ -431,7 +356,7 @@ function createCodeBackup() {
                     $clean_content = $content;
                 }
                 
-                $code_backup_data[$type] = $clean_content;
+                $code_backup_data[$type] = $content; // A backup must preserve the exact source.
                 $saved_files[] = $type;
             } else {
                 // Логируем ошибку чтения файла
@@ -522,64 +447,32 @@ function getBackupsList() {
 }
 
 function restoreFromBackup($backup_filename) {
-    $backup_file = '../data/backups/' . $backup_filename;
-    if (!file_exists($backup_file)) {
-        return false;
-    }
-    
-    $backup_data = json_decode(file_get_contents($backup_file), true);
-    if (!$backup_data) {
-        return false;
-    }
-    
-    $restored_tables = [];
-    
-    $pdo = getDBConnection();
-    if ($pdo) {
-        
-        // Список таблиц для восстановления
-        $tables = ['settings', 'content', 'films', 'gallery', 'prices'];
-        
-        foreach ($tables as $table) {
-            if (isset($backup_data[$table]) && is_array($backup_data[$table])) {
-                try {
-                    // Очищаем таблицу перед восстановлением
-                    $pdo->exec("DELETE FROM `$table`");
-                    
-                    if (!empty($backup_data[$table])) {
-                        // Подготавливаем SQL для вставки
-                        $columns = array_keys($backup_data[$table][0]);
-                        $placeholders = implode(', ', array_fill(0, count($columns), '?'));
-                        $column_names = implode(', ', array_map(function($col) { return "`$col`"; }, $columns));
-                        
-                        $stmt = $pdo->prepare("INSERT INTO `$table` ($column_names) VALUES ($placeholders)");
-                        
-                        foreach ($backup_data[$table] as $row) {
-                            $values = array_values($row);
-                            $stmt->execute($values);
-                        }
-                        
-                        $restored_tables[] = $table;
-                    }
-                } catch (PDOException $e) {
-                    error_log("Ошибка при восстановлении таблицы $table: " . $e->getMessage());
-                }
+    $pdo = getDBConnection(); if (!$pdo) return false;
+    try {
+        $backup_data=json_decode(file_get_contents(adminBackupPath($backup_filename)),true,512,JSON_THROW_ON_ERROR);
+        $tables=['settings','content','films','gallery','prices']; $validated=[];
+        foreach($tables as $table) {
+            if(!array_key_exists($table,$backup_data)) continue;
+            if(!is_array($backup_data[$table])) throw new RuntimeException('Некорректная таблица в копии.');
+            $columns=$pdo->query("SHOW COLUMNS FROM `$table`")->fetchAll(PDO::FETCH_COLUMN);
+            foreach($backup_data[$table] as $row) {
+                if(!is_array($row)||array_diff(array_keys($row),$columns)) throw new RuntimeException('Структура копии не соответствует БД.');
+                foreach($row as $value) if(!is_scalar($value)&&$value!==null) throw new RuntimeException('Некорректные данные копии.');
             }
+            $validated[$table]=$backup_data[$table];
         }
-    } else {
-        error_log("Ошибка подключения к БД при восстановлении: не удалось подключиться");
-        return false;
-    }
-    
-    return $restored_tables;
+        if(!$validated) throw new RuntimeException('В копии нет таблиц данных.');
+        $pdo->beginTransaction();
+        foreach($validated as $table=>$rows){
+            $pdo->exec("DELETE FROM `$table`");
+            foreach($rows as $row){$cols=array_keys($row);$sql="INSERT INTO `$table` (`".implode('`,`',$cols)."`) VALUES (".implode(',',array_fill(0,count($cols),'?')).")";$pdo->prepare($sql)->execute(array_values($row));}
+        }
+        $pdo->commit();return array_keys($validated);
+    } catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();error_log('Backup restore failed: '.$e->getMessage());return false;}
 }
 
 function deleteBackup($backup_filename) {
-    $backup_file = '../data/backups/' . $backup_filename;
-    if (file_exists($backup_file)) {
-        return unlink($backup_file);
-    }
-    return false;
+    try { return unlink(adminBackupPath($backup_filename)); } catch(Throwable $e) { return false; }
 }
 
 // Обработка формы
@@ -614,7 +507,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Обновляем index.html
-        $html_updated = updateIndexHtmlFromSettings($settings);
+        $html_updated = $db_saved && updateIndexHtmlFromSettings($settings);
+        if ($db_saved && $settings['admin']['username'] !== ($_ENV['ADMIN_USERNAME'] ?? 'admin')) adminUpdateEnv('ADMIN_USERNAME', $settings['admin']['username']);
         
         // Создаем автоматический бэкап только раз в сутки
         $backup_created = false;
@@ -679,8 +573,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($admin_password_hash && password_verify($_POST['current_password'] ?? '', $admin_password_hash)) {
         if ($_POST['new_password'] === $_POST['confirm_password'] && strlen($_POST['new_password']) >= 8) {
             $new_hash = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
-            $success = 'Пароль изменен успешно! Обновите ADMIN_PASSWORD_HASH в .env: ' . substr($new_hash, 0, 20) . '...';
-            writeLog('Смена пароля', 'Пароль администратора изменен (обновите .env)', 'success');
+            adminUpdateEnv('ADMIN_PASSWORD_HASH', $new_hash);
+            session_regenerate_id(true);
+            $success = 'Пароль изменён и сохранён. Для следующего входа используйте новый пароль.';
+            writeLog('Смена пароля', 'Пароль администратора изменён', 'success');
         } else {
             $error = strlen($_POST['new_password'] ?? '') < 8 ? 'Новый пароль не менее 8 символов.' : 'Новые пароли не совпадают';
             writeLog('Смена пароля', 'Ошибка смены пароля', 'error');
@@ -914,34 +810,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && validate
                         <div>
                             <div class="form-group">
                                 <label>Название сайта (украинский):</label>
-                                <input type="text" name="site_title_uk" value="<?php echo $settings['site']['title_uk'] ?? 'Тоніровка вікон Харків | Архітектурні та бронювальні плівки | tonirovka.kh.ua'; ?>">
+                                <input type="text" name="site_title_uk" value="<?php echo adminEscape($settings['site']['title_uk'] ?? 'Тоніровка вікон Харків | Архітектурні та бронювальні плівки | tonirovka.kh.ua'); ?>">
                                 <small style="color: #666; font-size: 12px;">Можно добавить описание и домен через |</small>
                             </div>
                             <div class="form-group">
                                 <label>Описание (украинский):</label>
-                                <textarea name="site_description_uk"><?php echo $settings['site']['description_uk'] ?? 'Професійне встановлення архітектурних та бронювальних плівок у Харкові. Захист від сонця, енергозбереження, безпека. Гарантія якості. ☎ +3 (050) 850-20-40'; ?></textarea>
+                                <textarea name="site_description_uk"><?php echo adminEscape($settings['site']['description_uk'] ?? 'Професійне встановлення архітектурних та бронювальних плівок у Харкові. Захист від сонця, енергозбереження, безпека. Гарантія якості. ☎ +3 (050) 850-20-40'); ?></textarea>
                                 <small style="color: #666; font-size: 12px;">Можно добавить телефон и дополнительные преимущества</small>
                             </div>
                             <div class="form-group">
                                 <label>Ключевые слова (украинский):</label>
-                                <textarea name="site_keywords_uk"><?php echo $settings['site']['keywords_uk'] ?? 'тоніровка вікон, архітектурні плівки, бронювальні плівки, Харків, встановлення плівок, захисні плівки, дзеркальні плівки, пленка'; ?></textarea>
+                                <textarea name="site_keywords_uk"><?php echo adminEscape($settings['site']['keywords_uk'] ?? 'тоніровка вікон, архітектурні плівки, бронювальні плівки, Харків, встановлення плівок, захисні плівки, дзеркальні плівки, пленка'); ?></textarea>
                                 <small style="color: #666; font-size: 12px;">Через запятую, включая синонимы и связанные термины</small>
                             </div>
                         </div>
                         <div>
                             <div class="form-group">
                                 <label>Название сайта (русский):</label>
-                                <input type="text" name="site_title_ru" value="<?php echo $settings['site']['title_ru'] ?? 'Тонировка окон Харьков | Архитектурные и бронирующие пленки | tonirovka.kh.ua'; ?>">
+                                <input type="text" name="site_title_ru" value="<?php echo adminEscape($settings['site']['title_ru'] ?? 'Тонировка окон Харьков | Архитектурные и бронирующие пленки | tonirovka.kh.ua'); ?>">
                                 <small style="color: #666; font-size: 12px;">Можно добавить описание и домен через |</small>
                             </div>
                             <div class="form-group">
                                 <label>Описание (русский):</label>
-                                <textarea name="site_description_ru"><?php echo $settings['site']['description_ru'] ?? 'Профессиональная установка архитектурных и бронирующих пленок в Харькове. Защита от солнца, энергосбережение, безопасность. Гарантия качества. ☎ +3 (050) 850-20-40'; ?></textarea>
+                                <textarea name="site_description_ru"><?php echo adminEscape($settings['site']['description_ru'] ?? 'Профессиональная установка архитектурных и бронирующих пленок в Харькове. Защита от солнца, энергосбережение, безопасность. Гарантия качества. ☎ +3 (050) 850-20-40'); ?></textarea>
                                 <small style="color: #666; font-size: 12px;">Можно добавить телефон и дополнительные преимущества</small>
                             </div>
                             <div class="form-group">
                                 <label>Ключевые слова (русский):</label>
-                                <textarea name="site_keywords_ru"><?php echo $settings['site']['keywords_ru'] ?? 'тонировка окон, архитектурные пленки, бронирующие пленки, Харьков, установка пленок, защитные пленки, зеркальные пленки'; ?></textarea>
+                                <textarea name="site_keywords_ru"><?php echo adminEscape($settings['site']['keywords_ru'] ?? 'тонировка окон, архитектурные пленки, бронирующие пленки, Харьков, установка пленок, защитные пленки, зеркальные пленки'); ?></textarea>
                                 <small style="color: #666; font-size: 12px;">Через запятую, включая синонимы и связанные термины</small>
                             </div>
                         </div>
@@ -954,13 +850,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && validate
                         <div>
                             <div class="form-group">
                                 <label>Имя пользователя:</label>
-                                <input type="text" name="admin_username" value="<?php echo $settings['admin']['username'] ?? 'admin'; ?>">
+                                <input type="text" name="admin_username" value="<?php echo adminEscape($settings['admin']['username'] ?? 'admin'); ?>">
                             </div>
                         </div>
                         <div>
                             <div class="form-group">
                                 <label>Email администратора:</label>
-                                <input type="email" name="admin_email" value="<?php echo $settings['admin']['email'] ?? 'admin@tonirovka.kh.ua'; ?>">
+                                <input type="email" name="admin_email" value="<?php echo adminEscape($settings['admin']['email'] ?? 'admin@tonirovka.kh.ua'); ?>">
                             </div>
                         </div>
                     </div>
@@ -972,13 +868,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && validate
                         <div>
                             <div class="form-group">
                                 <label>Google Analytics ID:</label>
-                                <input type="text" name="google_analytics" value="<?php echo $settings['seo']['google_analytics'] ?? ''; ?>" placeholder="G-XXXXXXXXXX">
+                                <input type="text" name="google_analytics" value="<?php echo adminEscape($settings['seo']['google_analytics'] ?? ''); ?>" placeholder="G-XXXXXXXXXX">
                             </div>
                         </div>
                         <div>
                             <div class="form-group">
                                 <label>Google Search Console:</label>
-                                <input type="text" name="google_verification" value="<?php echo $settings['seo']['google_verification'] ?? ''; ?>" placeholder="verification-code">
+                                <input type="text" name="google_verification" value="<?php echo adminEscape($settings['seo']['google_verification'] ?? ''); ?>" placeholder="verification-code">
                             </div>
                         </div>
                     </div>

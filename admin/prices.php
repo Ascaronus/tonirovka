@@ -50,10 +50,10 @@ function updateIndexHtml($prices) {
         }
         
         // Replace the tbody content
-        $new_html = preg_replace($pricing_pattern, $tbody_start . $new_tbody . $tbody_end, $html_content);
+        $new_html = preg_replace_callback($pricing_pattern, fn() => $tbody_start . $new_tbody . $tbody_end, $html_content);
         
         // Save the updated HTML
-        return file_put_contents(INDEX_HTML_PATH, $new_html) !== false;
+        return adminAtomicWrite(INDEX_HTML_PATH, $new_html) !== false;
     }
     
     return false;
@@ -67,8 +67,15 @@ if ($pdo) {
     $error_message = "❌ Невозможно загрузить данные цен из-за ошибки подключения к базе данных.";
 }
 
+$success_message = $_SESSION['flash_success'] ?? '';
+$error_message = $_SESSION['flash_error'] ?? ($error_message ?? '');
+unset($_SESSION['flash_success'], $_SESSION['flash_error']);
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$pdo) adminFail('Нет соединения с базой данных. Изменения не сохранены.',503);
+    if (!isset($_POST['action']) || !is_string($_POST['action'])) adminFail('Не указано действие.');
+    if (in_array($_POST['action'], ['edit','delete','replace_image'], true) && (!isset($_POST['index']) || !is_scalar($_POST['index']) || !ctype_digit((string)$_POST['index']) || !isset($prices[(int)$_POST['index']]))) adminFail('Запись не найдена. Обновите страницу.',404);
+
     if (!validateCsrf()) {
         $error_message = 'Недействительный запрос (CSRF). Обновите страницу и попробуйте снова.';
     } elseif (isset($_POST['action'])) {
@@ -138,6 +145,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error_message = "❌ Не удалось обновить сайт. Проверьте права доступа к index.html";
                 writeLog('Обновление сайта', 'Ошибка принудительного обновления цен на сайте', 'error');
             }
+            if (!empty($success_message)) $_SESSION['flash_success'] = $success_message;
+            if (!empty($error_message)) $_SESSION['flash_error'] = $error_message;
             header('Location: prices.php');
             exit;
         }
@@ -165,7 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        header('Location: prices.php');
+        if (!empty($success_message)) $_SESSION['flash_success'] = $success_message;
+            if (!empty($error_message)) $_SESSION['flash_error'] = $error_message;
+            header('Location: prices.php');
         exit;
     }
 }

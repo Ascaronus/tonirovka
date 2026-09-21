@@ -9,15 +9,7 @@ if (!ob_get_level()) {
     ob_start();
 }
 
-session_start();
-
-// Проверка авторизации (опционально, закомментируйте если нужно проверить без авторизации)
-/*
-if (!isset($_SESSION['admin_logged_in'])) {
-    header('Location: index.php');
-    exit;
-}
-*/
+require_once __DIR__ . '/bootstrap.php';
 
 ?>
 <!DOCTYPE html>

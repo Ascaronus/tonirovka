@@ -323,7 +323,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (footerDesc) {
                 const desc = lang === 'uk' ? t.footer.description_uk_display : t.footer.description_ru_display;
                 if (desc) {
-                    footerDesc.innerHTML = desc.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>');
+                    footerDesc.textContent = desc;
+                    footerDesc.style.whiteSpace = 'pre-line';
                     footerDesc.setAttribute('data-i18n-loaded', 'true');
                 }
             }
@@ -401,11 +402,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             const email = match[1];
                             el.innerHTML = translation.replace(email, `<a href="mailto:${email}">${email}</a>`);
                         } else {
-                            el.innerHTML = translation;
+                            el.textContent = translation;
                         }
                     }
                 } else {
-                    el.innerHTML = translation;
+                    el.textContent = translation;
                 }
             }
         });
@@ -476,11 +477,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             const email = match[1];
                             el.innerHTML = translation.replace(email, `<a href="mailto:${email}">${email}</a>`);
                         } else {
-                            el.innerHTML = translation;
+                            el.textContent = translation;
                         }
                     }
                 } else {
-                    el.innerHTML = translation;
+                    el.textContent = translation;
                 }
             }
         });
@@ -498,6 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Функция обновления метатегов
     // useJSON: true - использовать JSON (при переключении), false - использовать data-lang (при инициализации для SEO)
     function updateMetaTags(lang, useJSON = false) {
+        useJSON = false; // SEO texts in HTML are explicitly edited in admin.
         const t = useJSON ? translations[lang] : null;
         
         // Обновляем title

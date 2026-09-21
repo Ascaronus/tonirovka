@@ -138,7 +138,7 @@ function updateIndexHtml($films) {
     $updated_html = str_replace($old_films_section, $new_films_html, $html_content);
     
     // Write the updated content back to index.html
-    $result = file_put_contents(INDEX_HTML_PATH, $updated_html);
+    $result = adminAtomicWrite(INDEX_HTML_PATH, $updated_html);
     
     // Принудительно обновляем время модификации index.html для предотвращения кеширования
     if ($result !== false) {
@@ -158,6 +158,10 @@ if ($pdo) {
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$pdo) adminFail('Нет соединения с базой данных. Изменения не сохранены.',503);
+    if (!isset($_POST['action']) || !is_string($_POST['action'])) adminFail('Не указано действие.');
+    if (in_array($_POST['action'], ['edit','delete','replace_image'], true) && (!isset($_POST['index']) || !is_scalar($_POST['index']) || !ctype_digit((string)$_POST['index']) || !isset($films[(int)$_POST['index']]))) adminFail('Запись не найдена. Обновите страницу.',404);
+
     if (!validateCsrf()) {
         $error_message = 'Недействительный запрос (CSRF). Обновите страницу и попробуйте снова.';
     } elseif ($_POST['action'] === 'add') {
@@ -168,27 +172,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $validation_errors[] = "Изображение обязательно для загрузки.";
         }
         
-        if (empty($_POST['alt_uk']) || strlen($_POST['alt_uk']) < 10 || strlen($_POST['alt_uk']) > 200) {
+        if (empty($_POST['alt_uk']) || adminTextLength($_POST['alt_uk']) < 10 || adminTextLength($_POST['alt_uk']) > 200) {
             $validation_errors[] = "Alt текст (UA) должен быть от 10 до 200 символов.";
         }
         
-        if (empty($_POST['alt_ru']) || strlen($_POST['alt_ru']) < 10 || strlen($_POST['alt_ru']) > 200) {
+        if (empty($_POST['alt_ru']) || adminTextLength($_POST['alt_ru']) < 10 || adminTextLength($_POST['alt_ru']) > 200) {
             $validation_errors[] = "Alt текст (RU) должен быть от 10 до 200 символов.";
         }
         
-        if (empty($_POST['title_uk']) || strlen($_POST['title_uk']) < 5 || strlen($_POST['title_uk']) > 100) {
+        if (empty($_POST['title_uk']) || adminTextLength($_POST['title_uk']) < 5 || adminTextLength($_POST['title_uk']) > 100) {
             $validation_errors[] = "Название (UA) должно быть от 5 до 100 символов.";
         }
         
-        if (empty($_POST['title_ru']) || strlen($_POST['title_ru']) < 5 || strlen($_POST['title_ru']) > 100) {
+        if (empty($_POST['title_ru']) || adminTextLength($_POST['title_ru']) < 5 || adminTextLength($_POST['title_ru']) > 100) {
             $validation_errors[] = "Название (RU) должно быть от 5 до 100 символов.";
         }
         
-        if (empty($_POST['description_uk']) || strlen($_POST['description_uk']) < 20 || strlen($_POST['description_uk']) > 500) {
+        if (empty($_POST['description_uk']) || adminTextLength($_POST['description_uk']) < 20 || adminTextLength($_POST['description_uk']) > 500) {
             $validation_errors[] = "Описание (UA) должно быть от 20 до 500 символов.";
         }
         
-        if (empty($_POST['description_ru']) || strlen($_POST['description_ru']) < 20 || strlen($_POST['description_ru']) > 500) {
+        if (empty($_POST['description_ru']) || adminTextLength($_POST['description_ru']) < 20 || adminTextLength($_POST['description_ru']) > 500) {
             $validation_errors[] = "Описание (RU) должно быть от 20 до 500 символов.";
         }
         
@@ -270,6 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($_POST['action'] === 'edit') {
         $index = $_POST['index'];
+        if (isset($_POST['image']) && (!adminImageName($_POST['image']) || !is_file(IMAGES_DIR.'/'.$_POST['image']))) adminFail('Изображение не найдено.');
         $old_title = $films[$index]['title_uk'] ?? 'Неизвестная пленка';
         
         // Обновляем в базе данных
@@ -340,7 +345,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($_POST['action'] === 'replace_image') {
         $index = $_POST['index'];
-        $old_image = $_POST['old_image'];
+        $old_image = $films[$index]['image'];
+        if (!adminImageName($old_image)) adminFail('Некорректное имя изображения.');
         
         if (isset($_FILES['new_image']) && $_FILES['new_image']['error'] === UPLOAD_ERR_OK) {
             $upload_dir = IMAGES_DIR . '/';
@@ -352,12 +358,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (@getimagesize($temp_file) === false) {
                 $error_message = 'Файл не является изображением или повреждён.';
             } else {
-                if (file_exists($upload_dir . $old_image)) {
-                    unlink($upload_dir . $old_image);
-                }
                 
                 // Переименовываем новое изображение в старое имя
-                if (move_uploaded_file($temp_file, $upload_dir . $old_image)) {
+                if (adminReplaceUpload($temp_file, $upload_dir . $old_image)) {
                     // Принудительно обновляем время модификации файла для cache-busting
                     touch($upload_dir . $old_image);
                     

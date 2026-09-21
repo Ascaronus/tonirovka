@@ -79,9 +79,13 @@ function buildSiteSitemap($includeImages = false, $lastmod = null) {
 function updateSitemapLastmod() {
     require_once __DIR__ . '/business_schema.php';
     $ok = updateBusinessSchema();
+    require_once __DIR__ . '/seo_tools.php';
+    $html = seoSyncFaq(file_get_contents(INDEX_HTML_PATH));
+    if (basename($_SERVER['SCRIPT_NAME'] ?? '') === 'content.php' && seoAutomationSettings()['meta_on_save']) $html = seoApplyMeta($html, seoHeroMeta($html));
+    adminAtomicWrite(INDEX_HTML_PATH, $html);
     foreach (['sitemap.xml' => false, 'image-sitemap.xml' => true] as $filename => $images) {
         $xml = buildSiteSitemap($images, date('Y-m-d'));
-        if (file_put_contents(sitemapRoot() . '/' . $filename, $xml, LOCK_EX) === false) {
+        if (adminAtomicWrite(sitemapRoot() . '/' . $filename, $xml) === false) {
             error_log('Cannot update ' . $filename);
             $ok = false;
         }
