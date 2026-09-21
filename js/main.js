@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Обновляем email
             const emailLinks = document.querySelectorAll('#contacts a[href^="mailto:"]');
             emailLinks.forEach(link => {
-                if (t.contacts.email && !link.classList.contains('email-image-link')) {
+                if (t.contacts.email) {
                     link.href = 'mailto:' + t.contacts.email;
                     link.textContent = t.contacts.email;
                     link.setAttribute('data-i18n-loaded', 'true');
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const emailParas = document.querySelectorAll('#contacts p');
             emailParas.forEach(p => {
                 const text = p.textContent.trim();
-                if (!p.querySelector('.email-image-link') && text.includes('Email:') && p.querySelector('a[href^="mailto:"]')) {
+                if (text.includes('Email:') && p.querySelector('a[href^="mailto:"]')) {
                     const emailLabel = t.common?.email_label || 'Email:';
                     p.innerHTML = emailLabel + ' <a href="mailto:' + t.contacts.email + '">' + t.contacts.email + '</a>';
                     p.setAttribute('data-i18n-loaded', 'true');
@@ -391,7 +391,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Поисковые боты увидят правильный контент в HTML
         const elements = document.querySelectorAll(`[data-lang-${lang}]`);
         elements.forEach(el => {
-            if (el.querySelector('.email-image-link')) return;
             const translation = el.getAttribute(`data-lang-${lang}`);
             if (translation) {
                 if (el.closest('#window-film-guide')) {
@@ -463,7 +462,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Переключаем текст для каждого элемента
         elements.forEach(el => {
-            if (el.querySelector('.email-image-link')) return;
             const translation = el.getAttribute(`data-lang-${lang}`);
             if (translation) {
                 if (el.closest('#window-film-guide')) {

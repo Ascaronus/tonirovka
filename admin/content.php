@@ -9,13 +9,6 @@ if (isset($_POST['active_tab'])) {
 $active_tab = $_GET['tab'] ?? $_SESSION['active_tab'] ?? 'hero';
 if (!is_string($active_tab) || !in_array($active_tab, ['hero','contacts','faq','footer'], true)) $active_tab = 'hero';
 
-// The supplied image represents this address only; another address uses readable text.
-function contentEmailLink($email) {
-    $email=html_entity_decode($email, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    if ($email === 'tonirovka.kh.ua@gmail.com') return '<a class="email-image-link" href="mailto:tonirovka.kh.ua@gmail.com"><img class="email-address-image" src="https://tools.org.ua/wt/uk/hide?enc=vuf5ZI%2FUvGAdEybNsG%2Fw8AeS8A1z3YGFy0il0P9Xy%2B0A4IUO7dMGSCFKvLRMcLAELsFOZOc9fb7ISLKzU%2FltXaDmAmKeRuREyz9yTAOjmjQ%3D&amp;size=9&amp;bg=ffffff&amp;textbg=000000&amp;family=arial" alt="Написати нам на email" loading="lazy" decoding="async"></a>';
-    return '<a href="mailto:'.htmlspecialchars($email,ENT_QUOTES,'UTF-8').'">'.htmlspecialchars($email,ENT_QUOTES,'UTF-8').'</a>';
-}
-
 $content_file = DATA_DIR . '/content.json';
 
 // Function to force cache refresh for banner
@@ -296,7 +289,7 @@ function updateIndexHtml($content) {
     // Replace the entire contacts section with new data
     $new_contacts_section = '<div class="contact-details">' . "\n" .
                            '                <p data-lang-uk="Телефон: ' . $content['contacts']['phone'] . '" data-lang-ru="Телефон: ' . $content['contacts']['phone'] . '">Телефон: ' . $content['contacts']['phone'] . '</p>' . "\n" .
-                           '                <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: ' . contentEmailLink($content['contacts']['email']) . '</p>' . "\n" .
+                           '                <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: <a href="mailto:' . $content['contacts']['email'] . '">' . $content['contacts']['email'] . '</a></p>' . "\n" .
                            '                <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
                            '            </div>';
     
@@ -309,7 +302,7 @@ function updateIndexHtml($content) {
     $new_footer_contacts = '<div class="footer-info">' . "\n" .
                           '                    <h3 data-lang-uk="Контакти" data-lang-ru="Контакты">Контакти</h3>' . "\n" .
                           '                    <p data-lang-uk="Телефон: ' . $content['contacts']['phone'] . '" data-lang-ru="Телефон: ' . $content['contacts']['phone'] . '">Телефон: ' . $content['contacts']['phone'] . '</p>' . "\n" .
-                          '                    <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: ' . contentEmailLink($content['contacts']['email']) . '</p>' . "\n" .
+                          '                    <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: <a href="mailto:' . $content['contacts']['email'] . '">' . $content['contacts']['email'] . '</a></p>' . "\n" .
                           '                    <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
                           '                </div>';
     

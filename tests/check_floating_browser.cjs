@@ -22,7 +22,6 @@ const assert = require('assert');
    await page.locator('#uk-lang').click();
    await page.waitForFunction(text=>document.querySelector('#window-film-guide article p').textContent===text,uk);
 
-   assert.equal(await page.locator('a.email-image-link[href="mailto:tonirovka.kh.ua@gmail.com"] img').count(),2,'Email images survive language changes');
    await page.emulateMedia({media:'print'});
    assert(await page.locator('header').isHidden(),'Hide navigation in print');
    assert(await bar.isHidden(),'Hide floating contacts in print');
