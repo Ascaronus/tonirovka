@@ -9,11 +9,12 @@ const assert = require('assert');
   await page.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded'});
   const bar=page.locator('#floating-contacts');await bar.waitFor({state:'visible'});
   assert.equal(await bar.locator('a').count(),4);
+  if(width>600){const box=await bar.boundingBox();assert(Math.abs(box.x+box.width/2-width/2)<1,'Desktop centered');assert.equal((await bar.locator('img').first().boundingBox()).width,60);}else{assert.equal((await bar.locator('img').first().boundingBox()).width,36);}
   for(const link of await bar.locator('a').all()) {
    const b=await link.boundingBox();assert(b.width>=44 && b.height>=44 && b.x>=0 && b.x+b.width<=width);
    assert(await link.getAttribute('aria-label'));
   }
-  await page.evaluate(()=>{const callback=document.createElement('button');callback.id='cbch_modal_callback_button';callback.style.cssText='position:fixed;bottom:16px;left:8px;width:180px;height:70px;z-index:1000';callback.textContent='Callback fixture';document.body.append(callback);});
+  await page.evaluate(()=>{const callback=document.createElement('button');callback.id='cbch_modal_callback_button';callback.style.cssText='position:fixed;bottom:16px;left:8px;width:180px;height:70px;z-index:1000';if(window.innerWidth>600){callback.style.left='50%';callback.style.transform='translateX(-50%)';}callback.textContent='Callback fixture';document.body.append(callback);});
   await page.waitForTimeout(150);
   const a=await bar.boundingBox(),b=await page.locator('#cbch_modal_callback_button').boundingBox();assert(a.y+a.height<=b.y-10,'Callback collision at '+width);
   const response=page.waitForResponse(r=>r.url().endsWith('/contact-click.php')&&r.request().method()==='POST');
