@@ -35,15 +35,28 @@ try {
         unset($field);
     }
 }
+
+$page_title = '📖 Выбор и защита плёнкой';
+include __DIR__ . '/header.php';
 ?>
-<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Выбор и защита плёнкой — редактор</title>
-<style>body{font:16px/1.5 Arial,sans-serif;background:#f5f7fa;color:#222;margin:24px}main{max-width:1100px;margin:auto}fieldset{background:white;border:1px solid #ddd;margin:20px 0;padding:20px}.languages{display:grid;grid-template-columns:1fr 1fr;gap:20px}textarea{box-sizing:border-box;width:100%;min-height:100px;font:inherit}button{padding:14px 24px;cursor:pointer}.error{color:#a00}.success{color:#165c23}@media(max-width:700px){.languages{grid-template-columns:1fr}}</style></head>
-<body><main><a href="content.php">← Управление контентом</a><h1>Выбор и защита плёнкой</h1><p>Редактируйте заголовки, описания и подписи ссылок нового раздела. Сохранение сразу обновляет сайт. Поля принимают обычный текст.</p>
-<?php if ($error): ?><p class="error" role="alert"><?=guideEscape($error)?></p><?php endif ?>
-<?php if ($success): ?><p class="success" role="status"><?=guideEscape($success)?></p><?php endif ?>
+<div class="page-intro"><div><h2>Карточки выбора плёнки</h2><p class="muted">Заголовки и описания на украинском и русском. Сохранение сразу обновляет сайт.</p></div></div>
+<?php if ($error): ?><div class="error" role="alert"><?=guideEscape($error)?></div><?php endif ?>
+<?php if ($success): ?><div class="success" role="status"><?=guideEscape($success)?></div><?php endif ?>
 <?php if (isset($fields, $version)): ?><form method="post"><?=getCsrfField()?><input type="hidden" name="version" value="<?=guideEscape($version)?>">
-<?php foreach ($fields as $i => $field): ?><fieldset><legend><?=guideEscape(($field['tag'] === 'p' ? 'Описание' : 'Заголовок / подпись').' '.($i+1))?></legend><div class="languages">
-<?php foreach (['uk'=>'Українська','ru'=>'Русский'] as $lang=>$label): ?><label><?=$label?><textarea name="fields[<?=$i?>][<?=$lang?>]" required><?=guideEscape($field[$lang])?></textarea></label><?php endforeach ?>
-</div></fieldset><?php endforeach ?><button type="submit">Сохранить и опубликовать</button></form><?php endif ?>
-</main></body></html>
+<?php
+$groups = []; $current = null; $card = 0;
+foreach ($fields as $i => $field) {
+    if ($field['tag'] === 'h3') { $card++; $current = 'card_'.$card; $groups[$current] = ['title'=>'Карточка '.$card.' · '.$field['uk'], 'fields'=>[]]; }
+    elseif ($field['tag'] === 'h2') { $current='heading'; $groups[$current]=['title'=>'Заголовок раздела', 'fields'=>[]]; }
+    elseif ($field['tag'] === 'a') { $current='links'; if (!isset($groups[$current])) $groups[$current]=['title'=>'Ссылки под карточками', 'fields'=>[]]; }
+    $groups[$current]['fields'][$i]=$field;
+}
+foreach ($groups as $group): ?>
+<section class="guide-card"><h3><?=guideEscape($group['title'])?></h3><div class="editor-languages">
+<?php foreach (['uk'=>'Українська','ru'=>'Русский'] as $lang=>$label): ?><div><h4><?=$label?></h4>
+<?php foreach ($group['fields'] as $i=>$field): ?><div class="form-group"><label for="field-<?=$i?>-<?=$lang?>"><?= $field['tag']==='p'?'Описание':($field['tag']==='a'?'Подпись ссылки':'Заголовок') ?></label>
+<?php if ($field['tag']==='p'): ?><textarea id="field-<?=$i?>-<?=$lang?>" name="fields[<?=$i?>][<?=$lang?>]" required><?=guideEscape($field[$lang])?></textarea>
+<?php else: ?><input type="text" id="field-<?=$i?>-<?=$lang?>" name="fields[<?=$i?>][<?=$lang?>]" value="<?=guideEscape($field[$lang])?>" required><?php endif ?></div><?php endforeach ?>
+</div><?php endforeach ?></div></section><?php endforeach ?>
+<div class="save-bar"><span class="muted">Изменения применятся к обоим языкам</span><button type="submit">Сохранить и опубликовать</button></div></form><?php endif ?>
+<?php include __DIR__ . '/footer.php'; ?>

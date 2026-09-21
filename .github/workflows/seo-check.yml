@@ -14,6 +14,7 @@ jobs:
         run: |
           python3 tests/check_seo.py
           node --check js/main.js
+          node --check js/contact-stats.js
       - name: Start actual Apache and PHP
         run: |
           docker build -f tests/Dockerfile -t tonirovka-seo-test .
@@ -28,6 +29,11 @@ jobs:
           docker exec seo-test php -r 'require "/var/www/html/admin/sitemap_helper.php"; foreach ([false,true] as $images) { $xml = buildSiteSitemap($images); $dom = new DOMDocument(); if (!$dom->loadXML($xml)) { exit(1); } } if (!updateSitemapLastmod()) { exit(1); }'
       - name: Guide editor round-trip
         run: docker exec seo-test php /var/www/html/tests/check_guide.php
+      - name: Contact statistics and admin pages
+        run: |
+          docker exec seo-test php -l /var/www/html/contact-click.php
+          docker exec seo-test php /var/www/html/tests/check_contact_stats.php
+          python3 tests/check_contact_http.py
       - name: HTTP statuses, redirects, private files and assets
         run: python3 tests/check_seo.py --http http://127.0.0.1:8080
       - name: Apache logs on failure

@@ -198,14 +198,7 @@ foreach ($all_logs as $log) {
     
     <div class="container">
         <div class="nav">
-            <a href="index.php">📊 Главная</a>
-            <a href="prices.php">💰 Цены</a>
-            <a href="gallery.php">🖼️ Галерея</a>
-            <a href="films.php">🎨 Пленки</a>
-            <a href="content.php">📝 Контент</a>
-            <a href="seo-auto.php">🚀 SEO Автоматика</a>
-            <a href="settings.php">⚙️ Настройки</a>
-            <a href="logs.php">📋 Логи</a>
+            <?php include __DIR__ . '/nav.php'; ?>
         </div>
         
         <?php if (isset($success)): ?>

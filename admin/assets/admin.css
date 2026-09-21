@@ -37,3 +37,31 @@ button:hover { background: #218838; }
 .gallery-item { background: #f8f9fa; padding: 20px; border-radius: 5px; border: 1px solid #dee2e6; }
 .gallery-item img { max-width: 100%; height: 200px; object-fit: cover; border-radius: 5px; margin-bottom: 10px; }
 .btn-group { margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Contact statistics and grouped guide editor, shared admin palette. */
+.page-intro { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+.page-intro h2 { margin:0 0 8px; }
+.muted { color:#626b75; font-size:14px; line-height:1.6; }
+.period-total { background:#eaf3ff; color:#0056b3; padding:12px 16px; border-radius:6px; }
+.stats-filters { display:flex; flex-wrap:wrap; gap:16px; align-items:end; }
+.stats-filters label { flex:1; min-width:160px; margin:0; }
+.stats-filters input[type="date"] { display:block; box-sizing:border-box; width:100%; padding:10px; margin-top:6px; border:1px solid #ddd; border-radius:5px; font:inherit; }
+.stats-filters select { margin-top:6px; }
+.period-links { display:flex; gap:12px; margin:16px 0 24px; }
+.period-links a { color:#0069d9; }
+.stats-cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.stat-number { display:block; font-size:36px; margin:12px 0; color:#0056b3; }
+.table-scroll { overflow-x:auto; }
+.stats-table { border-collapse:collapse; width:100%; }
+.stats-table th, .stats-table td { padding:14px; border-bottom:1px solid #dee2e6; text-align:right; }
+.stats-table th { background:#f8f9fa; }
+.stats-table th:first-child, .stats-table td:first-child { text-align:left; }
+.empty-state { padding:32px; background:#f8f9fa; border:1px dashed #cbd1d7; border-radius:6px; text-align:center; }
+.stats-note { margin-top:28px; }
+.guide-card { border:1px solid #dee2e6; border-radius:8px; margin:0 0 24px; overflow:hidden; }
+.guide-card > h3 { padding:16px 20px; margin:0; background:#f8f9fa; border-bottom:1px solid #dee2e6; font-size:17px; }
+.editor-languages { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; padding:0 20px; }
+.editor-languages textarea { min-height:180px; line-height:1.6; }
+.save-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; }
+@media(max-width:800px) { .stats-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } .editor-languages { grid-template-columns:1fr; gap:0; } }
+@media(max-width:480px) { .content { padding:16px; } .container { padding:12px; } .stats-cards { grid-template-columns:1fr; } .header h1 { font-size:23px; } }

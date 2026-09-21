@@ -35,3 +35,7 @@ DirectoryIndex index.php
     Header always set X-Robots-Tag "noindex, nofollow"
     Header always set Cache-Control "no-store"
 </IfModule>
+
+<FilesMatch "^(?:nav|contact_stats_store|guide_helper)\.php$">
+    Require all denied
+</FilesMatch>
