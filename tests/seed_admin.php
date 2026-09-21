@@ -1,6 +1,10 @@
 <?php
 require __DIR__.'/../admin/config.php';
 $pdo=getDBConnection();if(!$pdo)throw new RuntimeException('Test DB unavailable');
+$version=(string)$pdo->query('SELECT VERSION()')->fetchColumn();
+$expected=getenv('EXPECTED_MYSQL_SERIES');
+if($expected && (!str_starts_with($version,$expected.'.') || stripos($version,'MariaDB')!==false))throw new RuntimeException('Expected MySQL '.$expected.', got '.$version);
+echo "Database compatibility test: MySQL ".$version."\n";
 $tables=[
 'content'=>'id INT PRIMARY KEY AUTO_INCREMENT, section VARCHAR(64), language VARCHAR(4), title TEXT, content LONGTEXT',
 'prices'=>'id INT PRIMARY KEY AUTO_INCREMENT, service_uk TEXT, service_ru TEXT, price_uk TEXT, price_ru TEXT, sort_order INT',

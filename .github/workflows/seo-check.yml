@@ -21,13 +21,13 @@ jobs:
         run: |
           docker build -f tests/Dockerfile -t tonirovka-seo-test .
           docker network create seo-audit
-          docker run -d --name audit-db --network seo-audit -e MARIADB_ROOT_PASSWORD=test-root-only -e MARIADB_DATABASE=audit -e MARIADB_USER=audit -e MARIADB_PASSWORD=test-db-only mariadb:11.4
+          docker run -d --name audit-db --network seo-audit -e MYSQL_ROOT_PASSWORD=test-root-only -e MYSQL_DATABASE=audit -e MYSQL_USER=audit -e MYSQL_PASSWORD=test-db-only mysql:5.7.44
           for i in $(seq 1 60); do
-            if docker exec audit-db mariadb-admin ping -h127.0.0.1 -uroot -ptest-root-only --silent; then break; fi
+            if docker exec audit-db mysqladmin ping -h127.0.0.1 -uroot -ptest-root-only --silent; then break; fi
             sleep 1
           done
           docker run -d --name seo-test --network seo-audit -e DB_HOST=audit-db -e DB_DATABASE=audit -e DB_USERNAME=audit -e DB_PASSWORD=test-db-only -p 127.0.0.1:8080:80 tonirovka-seo-test
-          docker exec seo-test php /var/www/html/tests/seed_admin.php
+          docker exec -e EXPECTED_MYSQL_SERIES=5.7 seo-test php /var/www/html/tests/seed_admin.php
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8080/ >/dev/null; then break; fi
             sleep 1
