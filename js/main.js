@@ -256,7 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     if (answerEl && t.faq[questionNum].answer) {
-                        answerEl.innerHTML = t.faq[questionNum].answer.replace(/\n/g, '<br>');
+                        answerEl.textContent = t.faq[questionNum].answer;
+                        answerEl.style.whiteSpace = 'pre-line';
                         answerEl.setAttribute('data-i18n-loaded', 'true');
                     }
                 }

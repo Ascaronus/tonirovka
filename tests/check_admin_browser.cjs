@@ -22,8 +22,9 @@ const assert=require('assert');
   const translations=await(await page.request.get(origin+'/langs/ru.json')).json();assert.equal(translations.footer.working_hours_ru.saturday,'Сб: 11:00 - 16:00');
   await post('gallery.php',{action:'update_site'});await post('films.php',{action:'update_site'});
   await post('seo-auto.php',{action:'check_seo'});await post('seo-auto.php',{action:'update_sitemap'});
-  await post('seo-auto.php',{action:'save_meta','meta[uk][title]':'SEO $1 Україна','meta[ru][title]':'SEO $1 Украина','meta[uk][description]':'Перевірка SEO опису','meta[ru][description]':'Проверка SEO описания'});
-  homepage=await(await page.request.get(origin+'/')).text();assert(homepage.includes('SEO $1 Україна'));
+  await post('seo-auto.php',{action:'save_meta','meta[uk][title]':'SEO $1 «Україна» & вікна','meta[ru][title]':'SEO $1 Украина','meta[uk][description]':'Перевірка SEO опису','meta[ru][description]':'Проверка SEO описания'});
+  homepage=await(await page.request.get(origin+'/')).text();assert(homepage.includes('SEO $1 «Україна» &amp; вікна'));
+  await open('settings.php');assert.equal(await page.locator('[name=site_title_uk]').inputValue(),'SEO $1 «Україна» & вікна','Settings show published metadata without double encoding');
   await open('guide.php');const guide=await page.locator('form').evaluate(f=>Object.fromEntries(new FormData(f)));response=await page.request.post(origin+'/admin/guide.php',{form:guide});assert.equal(response.status(),200,'Guide save');
   // Invalid indexes and CSRF fail without performing mutations.
   await open('prices.php');const token=await page.locator('[name=csrf_token]').first().inputValue();response=await page.request.post(origin+'/admin/prices.php',{form:{csrf_token:token,action:'delete',index:'99999'}});assert.equal(response.status(),404);

@@ -152,7 +152,7 @@ function updateIndexHtmlFromSettings($settings) {
 
 // Функция для извлечения данных из index.html
 function extractSettingsFromIndex() {
-    $index_file = '../index.html';
+    $index_file = INDEX_HTML_PATH;
     if (!file_exists($index_file)) {
         return false;
     }
@@ -162,29 +162,29 @@ function extractSettingsFromIndex() {
     
     // Извлекаем title
     if (preg_match('/<title[^>]*data-lang-uk="([^"]*)"[^>]*data-lang-ru="([^"]*)"[^>]*>/', $content, $matches)) {
-        $settings['site']['title_uk'] = $matches[1];
-        $settings['site']['title_ru'] = $matches[2];
+        $settings['site']['title_uk'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $settings['site']['title_ru'] = html_entity_decode($matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     
     // Извлекаем description
     if (preg_match('/<meta name="description"[^>]*data-lang-uk="([^"]*)"[^>]*data-lang-ru="([^"]*)"[^>]*>/', $content, $matches)) {
-        $settings['site']['description_uk'] = $matches[1];
-        $settings['site']['description_ru'] = $matches[2];
+        $settings['site']['description_uk'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $settings['site']['description_ru'] = html_entity_decode($matches[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     
     // Извлекаем keywords
     if (preg_match('/<meta name="keywords"[^>]*content="([^"]*)"[^>]*>/', $content, $matches)) {
-        $settings['site']['keywords_uk'] = $matches[1];
+        $settings['site']['keywords_uk'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     
     // Извлекаем русские keywords
     if (preg_match('/<meta name="keywords"[^>]*lang="ru"[^>]*content="([^"]*)"[^>]*>/', $content, $matches)) {
-        $settings['site']['keywords_ru'] = $matches[1];
+        $settings['site']['keywords_ru'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     
     // Извлекаем Google verification
     if (preg_match('/<meta name="google-site-verification"[^>]*content="([^"]*)"[^>]*>/', $content, $matches)) {
-        $settings['seo']['google_verification'] = $matches[1];
+        $settings['seo']['google_verification'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     
     return $settings;
@@ -475,6 +475,9 @@ function deleteBackup($backup_filename) {
     try { return unlink(adminBackupPath($backup_filename)); } catch(Throwable $e) { return false; }
 }
 
+$published_settings = extractSettingsFromIndex();
+if ($published_settings) $settings = array_replace_recursive($settings, $published_settings);
+
 // Обработка формы
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrf()) {
@@ -621,7 +624,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && validate
             if (isset($_POST['backup_filename'])) {
                 $restored_tables = restoreFromBackup($_POST['backup_filename']);
                 if ($restored_tables) {
-                    $success = 'Восстановление выполнено успешно! Восстановлены таблицы: ' . implode(', ', $restored_tables);
+                    $success = 'БД восстановлена. Для публикации сохраните контент и нажмите «Обновить сайт» в ценах, плёнках и галерее. Таблицы: ' . implode(', ', $restored_tables);
                     writeLog('Восстановление бэкапа', 'Восстановлен бэкап: ' . $_POST['backup_filename'] . ' (таблицы: ' . implode(', ', $restored_tables) . ')', 'success');
                 } else {
                     $error = 'Ошибка восстановления из резервной копии!';

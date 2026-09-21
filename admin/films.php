@@ -85,7 +85,7 @@ function updateIndexHtml($films) {
         }
         
         $cache_buster = file_exists($image_path) ? filemtime($image_path) : time();
-        $new_films_html .= '<img src="images/' . htmlspecialchars($film['image']) . '?v=' . $cache_buster . '" alt="' . htmlspecialchars($film['alt_uk']) . '" data-alt-uk="' . htmlspecialchars($film['alt_uk']) . '" data-alt-ru="' . htmlspecialchars($film['alt_ru']) . '" class="film-img">';
+        $new_films_html .= '<img src="images/' . htmlspecialchars($film['image']) . '?v=' . $cache_buster . '" alt="' . htmlspecialchars($film['alt_uk']) . '" data-alt-uk="' . htmlspecialchars($film['alt_uk']) . '" data-alt-ru="' . htmlspecialchars($film['alt_ru']) . '" class="film-img" loading="lazy" decoding="async">';
         $new_films_html .= '<figcaption class="film-content">';
         $new_films_html .= '<h3 data-lang-uk="' . htmlspecialchars($film['title_uk']) . '" data-lang-ru="' . htmlspecialchars($film['title_ru']) . '">' . htmlspecialchars($film['title_uk']) . '</h3>';
         $new_films_html .= '<p data-lang-uk="' . htmlspecialchars($film['description_uk']) . '" data-lang-ru="' . htmlspecialchars($film['description_ru']) . '">' . htmlspecialchars($film['description_uk']) . '</p>';
@@ -97,31 +97,13 @@ function updateIndexHtml($films) {
             
             $new_films_html .= '<ul class="film-features" data-features-uk="' . $features_uk . '" data-features-ru="' . $features_ru . '">';
             
-            // Add Ukrainian features
-            if (!empty($film['features_uk'])) {
-                foreach ($film['features_uk'] as $feature) {
-                    $new_films_html .= '<li data-lang-uk="' . htmlspecialchars(trim($feature)) . '" data-lang-ru="">' . htmlspecialchars(trim($feature)) . '</li>';
-                }
+            $uk_features = array_values($film['features_uk'] ?? []);
+            $ru_features = array_values($film['features_ru'] ?? []);
+            for ($i=0; $i<max(count($uk_features),count($ru_features)); $i++) {
+                $uk = htmlspecialchars(trim($uk_features[$i] ?? ''));
+                $ru = htmlspecialchars(trim($ru_features[$i] ?? ''));
+                $new_films_html .= '<li data-lang-uk="'.$uk.'" data-lang-ru="'.$ru.'">'.$uk.'</li>';
             }
-            
-            // Add Russian features
-            if (!empty($film['features_ru'])) {
-                foreach ($film['features_ru'] as $index => $feature) {
-                    if (isset($film['features_uk'][$index])) {
-                        // Update existing li with Russian text
-                        $new_films_html = preg_replace(
-                            '/<li data-lang-uk="([^"]*)" data-lang-ru="">([^<]*)<\/li>/',
-                            '<li data-lang-uk="$1" data-lang-ru="' . htmlspecialchars(trim($feature)) . '">$2</li>',
-                            $new_films_html,
-                            1
-                        );
-                    } else {
-                        // Add new li for Russian feature
-                        $new_films_html .= '<li data-lang-uk="" data-lang-ru="' . htmlspecialchars(trim($feature)) . '">' . htmlspecialchars(trim($feature)) . '</li>';
-                    }
-                }
-            }
-            
             $new_films_html .= '</ul>';
         }
         

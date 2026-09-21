@@ -71,7 +71,7 @@ function writeLogToDB($action, $message, $level = 'info', $details = []) {
         ]);
         
         return true;
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         // Если БД недоступна, записываем в файл как fallback
         writeLogToFile($action, $message, $level, $details);
         return false;
@@ -236,7 +236,7 @@ function getLogsFromDB($limit = 100, $filter = '') {
         }
         
         return $logs;
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         // Если БД недоступна, читаем из файла
         return getLogsFromFile($limit, $filter);
     }
@@ -357,7 +357,7 @@ function clearAllLogsFromDB() {
         $stmt->execute();
         
         return $stmt->rowCount();
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         return false;
     }
 }
@@ -372,7 +372,7 @@ function cleanOldLogsFromDB($days = 30) {
         $stmt->execute([$days]);
         
         return $stmt->rowCount();
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         return false;
     }
 }
