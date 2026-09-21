@@ -1,6 +1,10 @@
 <?php
 require __DIR__.'/../admin/seo_tools.php';
 $html=file_get_contents(INDEX_HTML_PATH);
+require_once __DIR__.'/../admin/html_compact.php';
+$fixture='<pre>  exact spaces</pre><script type="application/ld+json">{ "name": "Example" }</script>';
+$compact=compactPublishedHtml($fixture);
+if(!str_contains($compact,'<pre>  exact spaces</pre>') || compactPublishedHtml($compact)!==$compact)throw new RuntimeException('HTML compaction must preserve whitespace-sensitive content and be idempotent');
 try {
     $report=seoCheckSite();if($report['checks']['page_speed']['status']!=='info')throw new RuntimeException('Fake speed score');
     $meta=['uk'=>['title'=>'Тест $1 "назва"','description'=>'Опис & текст'],'ru'=>['title'=>'Тест $1 название','description'=>'Описание']];

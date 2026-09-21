@@ -2,6 +2,10 @@
 function adminEscape($s) { return htmlspecialchars((string)$s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 function adminAtomicWrite($path, $data) {
     if (!is_string($data)) throw new RuntimeException('Не удалось подготовить данные файла.');
+    if (defined('INDEX_HTML_PATH') && $path === INDEX_HTML_PATH) {
+        require_once __DIR__.'/html_compact.php';
+        $data = compactPublishedHtml($data);
+    }
     $tmp = tempnam(dirname($path), '.admin-');
     if ($tmp === false) throw new RuntimeException('Каталог недоступен для записи.');
     try {

@@ -1,3 +1,8 @@
+// Ukrainian guide text is already present in HTML; retain it for language switching.
+document.querySelectorAll('#window-film-guide [data-lang-ru]').forEach(el => {
+    if (!el.hasAttribute('data-lang-uk')) el.setAttribute('data-lang-uk', el.textContent);
+});
+
 // Статический контент сайта (без загрузки из БД)
 let siteData = {};
 

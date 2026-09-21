@@ -4,6 +4,8 @@ function check($ok, $message) { if (!$ok) throw new RuntimeException($message); 
 $html = file_get_contents(__DIR__ . '/../index.html');
 $fields = guideFields($html);
 check(count($fields) === 19, 'Eight cards, section heading and two links');
+$legacy=preg_replace_callback('~<(h2|h3|p|a)([^>]*?) data-lang-ru="([^"]*)"([^>]*)>(.*?)</\1>~s',function($m){return '<'.$m[1].$m[2].' data-lang-uk="'.guideEscape(html_entity_decode(strip_tags($m[5]),ENT_QUOTES|ENT_HTML5,'UTF-8')).'" data-lang-ru="'.$m[3].'"'.$m[4].'>'.$m[5].'</'.$m[1].'>';},$html);
+check(guideFields($legacy)===$fields,'Read both compact and legacy guide markup');
 $fields[2]['uk'] = 'Уламки & "лапки" <script>alert(1)</script> $1';
 $fields[2]['ru'] = 'Осколки и кавычки "тест"';
 $updated = guideReplace($html, $fields);

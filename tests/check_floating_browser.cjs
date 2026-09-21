@@ -15,6 +15,13 @@ const assert = require('assert');
    assert(await link.getAttribute('aria-label'));
   }
   if(width===1440){
+   const guide=page.locator('#window-film-guide article p').first();
+   const uk=await guide.textContent(),ru=await guide.getAttribute('data-lang-ru');
+   await page.locator('#ru-lang').click();
+   await page.waitForFunction(text=>document.querySelector('#window-film-guide article p').textContent===text,ru);
+   await page.locator('#uk-lang').click();
+   await page.waitForFunction(text=>document.querySelector('#window-film-guide article p').textContent===text,uk);
+
    await page.emulateMedia({media:'print'});
    assert(await page.locator('header').isHidden(),'Hide navigation in print');
    assert(await bar.isHidden(),'Hide floating contacts in print');
