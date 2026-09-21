@@ -3,7 +3,7 @@ require __DIR__ . '/../admin/guide_helper.php';
 function check($ok, $message) { if (!$ok) throw new RuntimeException($message); }
 $html = file_get_contents(__DIR__ . '/../index.html');
 $fields = guideFields($html);
-check(count($fields) === 17, 'Seven cards, section heading and two links');
+check(count($fields) === 19, 'Eight cards, section heading and two links');
 $fields[2]['uk'] = 'Уламки & "лапки" <script>alert(1)</script> $1';
 $fields[2]['ru'] = 'Осколки и кавычки "тест"';
 $updated = guideReplace($html, $fields);
