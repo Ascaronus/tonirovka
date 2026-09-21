@@ -7,7 +7,9 @@ try {
     ensure(contactReadStats($path)['days'] === [], 'Empty state');
     contactRecord('telegram', 'contacts', $path); contactRecord('telegram', 'contacts', $path);
     contactRecord('telegram', 'footer', $path); contactRecord('viber', 'footer', $path);
+    contactRecord('facebook', 'floating', $path);
     $data = contactReadStats($path); $today = contactToday();
+    ensure(contactSummary($data, $today, $today, 'floating')['totals']['facebook'] === 1, 'Floating filter');
     ensure(contactSummary($data, $today, $today)['totals']['telegram'] === 3, 'Total aggregation');
     ensure(contactSummary($data, $today, $today, 'footer')['totals']['telegram'] === 1, 'Position filter');
     ensure(contactSummary($data, '2000-01-01', '2000-01-02')['rows'] === [], 'Date filter');

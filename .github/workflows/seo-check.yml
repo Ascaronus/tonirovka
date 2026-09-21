@@ -15,6 +15,7 @@ jobs:
           python3 tests/check_seo.py
           node --check js/main.js
           node --check js/contact-stats.js
+          node --check js/floating-contacts.js
           node tests/check_contact_client.cjs
       - name: Start actual Apache and PHP
         run: |
@@ -39,6 +40,11 @@ jobs:
           python3 tests/check_contact_http.py
       - name: HTTP statuses, redirects, private files and assets
         run: python3 tests/check_seo.py --http http://127.0.0.1:8080
+      - name: Mobile and desktop floating contacts
+        run: |
+          npm install --prefix /tmp/float-browser --no-package-lock playwright@1.58.2
+          /tmp/float-browser/node_modules/.bin/playwright install --with-deps chromium
+          PLAYWRIGHT_MODULE=/tmp/float-browser/node_modules/playwright node tests/check_floating_browser.cjs
       - name: Apache logs on failure
         if: failure()
         run: docker logs seo-test || true

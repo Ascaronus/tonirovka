@@ -12,7 +12,7 @@ $from = $_GET['from'] ?? (new DateTimeImmutable($today))->modify('-29 days')->fo
 $to = $_GET['to'] ?? $today;
 $place = $_GET['place'] ?? 'all';
 $error = ''; $data = ['started'=>null, 'days'=>[]];
-if (!statsDate($from) || !statsDate($to) || $from > $to || !is_string($place) || !in_array($place, ['all','contacts','footer'], true)) {
+if (!statsDate($from) || !statsDate($to) || $from > $to || !is_string($place) || !in_array($place, array_merge(['all'], array_keys(contactPlaces())), true)) {
     $error = 'Проверьте диапазон дат и место кнопки.'; $from = $today; $to = $today; $place = 'all';
 }
 try { $data = contactReadStats(); } catch (Throwable $e) { $error = 'Не удалось прочитать статистику. Проверьте файл data/contact-clicks.json и права доступа.'; }

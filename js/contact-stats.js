@@ -5,7 +5,7 @@
         if (!event.isTrusted || event.defaultPrevented || (event.type === 'auxclick' && event.button !== 1) || (event.type === 'click' && event.button !== 0)) return;
         const link = event.target.closest && event.target.closest('a[href]');
         if (!link) return;
-        const place = link.closest('footer') ? 'footer' : link.closest('#contacts') ? 'contacts' : null;
+        const place = link.closest('#floating-contacts') ? 'floating' : link.closest('footer') ? 'footer' : link.closest('#contacts') ? 'contacts' : null;
         if (!place) return;
         let url;
         try { url = new URL(link.href, location.href); } catch (_) { return; }
