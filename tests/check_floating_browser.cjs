@@ -13,6 +13,8 @@ const assert = require('assert');
   for(const link of await bar.locator('a').all()) {
    const b=await link.boundingBox();assert(b.width>=44 && b.height>=44 && b.x>=0 && b.x+b.width<=width);
    assert(await link.getAttribute('aria-label'));
+   assert.equal(await link.getAttribute('target'),'_blank');
+   assert((await link.getAttribute('rel')).includes('noopener'));
   }
   if(width===1440){
    const guide=page.locator('#window-film-guide article p').first();
@@ -32,6 +34,17 @@ const assert = require('assert');
   await page.evaluate(()=>{const callback=document.createElement('button');callback.id='cbch_modal_callback_button';callback.style.cssText='position:fixed;bottom:16px;left:8px;width:180px;height:70px;z-index:1000';if(window.innerWidth>600){callback.style.left='50%';callback.style.transform='translateX(-50%)';}callback.textContent='Callback fixture';document.body.append(callback);});
   await page.waitForTimeout(150);
   const a=await bar.boundingBox(),b=await page.locator('#cbch_modal_callback_button').boundingBox();assert(a.y+a.height<=b.y-10,'Callback collision at '+width);
+  if(width===1440 || width===375){
+   const originalUrl=page.url();
+   await page.evaluate(()=>document.querySelector('#contacts a[href*="facebook.com"]').href=location.origin+'/?contact-test=1');
+   await page.waitForFunction(()=>document.querySelector('#floating-contacts a[aria-label="Facebook"]').href.includes('contact-test=1'));
+   const popupPromise=page.context().waitForEvent('page');
+   await bar.locator('a[aria-label="Facebook"]').click();
+   const popup=await popupPromise;await popup.waitForLoadState('domcontentloaded');
+   assert.equal(page.url(),originalUrl,'Original site remains open');
+   assert(popup.url().includes('contact-test=1'),'Contact opens in a new tab');
+   await popup.close();
+  }
   const response=page.waitForResponse(r=>r.url().endsWith('/contact-click.php')&&r.request().method()==='POST');
   await page.evaluate(()=>document.addEventListener('click',e=>{if(e.target.closest('#floating-contacts a'))e.preventDefault();}));
   await bar.locator('a[aria-label="Telegram"]').click();

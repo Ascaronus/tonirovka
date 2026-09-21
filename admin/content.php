@@ -322,16 +322,16 @@ function updateIndexHtml($content) {
     $social_links_pattern = '/<div class="social-links">\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<\/div>/s';
     $new_social_links = '<div class="social-links">' . "\n";
     if (!empty($content['contacts']['facebook'])) {
-        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['facebook']) . '"><i>FB</i></a>' . "\n";
+        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['facebook']) . '" target="_blank" rel="noopener noreferrer"><i>FB</i></a>' . "\n";
     }
     if (!empty($content['contacts']['instagram'])) {
-        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['instagram']) . '"><i>IG</i></a>' . "\n";
+        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['instagram']) . '" target="_blank" rel="noopener noreferrer"><i>IG</i></a>' . "\n";
     }
     if (!empty($content['contacts']['viber'])) {
-        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['viber']) . '"><i>VB</i></a>' . "\n";
+        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['viber']) . '" target="_blank" rel="noopener noreferrer"><i>VB</i></a>' . "\n";
     }
     if (!empty($content['contacts']['telegram'])) {
-        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['telegram']) . '"><i>TG</i></a>' . "\n";
+        $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['telegram']) . '" target="_blank" rel="noopener noreferrer"><i>TG</i></a>' . "\n";
     }
     $new_social_links .= '                    </div>';
     $html_content = preg_replace_callback($social_links_pattern, fn() => $new_social_links, $html_content);
@@ -344,7 +344,7 @@ function updateIndexHtml($content) {
         // Update Facebook in contacts section - replace entire link block
         $facebook_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Facebook"[^>]*>\s*<p>Facebook<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['facebook'])) {
-            $new_facebook_contacts = '<a href="' . htmlspecialchars($content['contacts']['facebook']) . '" class="contact-social-link">' . "\n" .
+            $new_facebook_contacts = '<a href="' . htmlspecialchars($content['contacts']['facebook']) . '" target="_blank" rel="noopener noreferrer" class="contact-social-link">' . "\n" .
                                     '                    <div class="text-center">' . "\n" .
                                     '                        <img src="images/facebook.png" alt="Facebook" class="contact-social-icon">' . "\n" .
                                     '                        <p>Facebook</p>' . "\n" .
@@ -356,7 +356,7 @@ function updateIndexHtml($content) {
         // Update Instagram in contacts section - replace entire link block
         $instagram_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Instagram"[^>]*>\s*<p>Instagram<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['instagram'])) {
-            $new_instagram_contacts = '<a href="' . htmlspecialchars($content['contacts']['instagram']) . '" class="contact-social-link">' . "\n" .
+            $new_instagram_contacts = '<a href="' . htmlspecialchars($content['contacts']['instagram']) . '" target="_blank" rel="noopener noreferrer" class="contact-social-link">' . "\n" .
                                      '                    <div class="text-center">' . "\n" .
                                      '                        <img src="images/instagram.png" alt="Instagram" class="contact-social-icon">' . "\n" .
                                      '                        <p>Instagram</p>' . "\n" .
@@ -368,7 +368,7 @@ function updateIndexHtml($content) {
         // Update Viber in contacts section - replace entire link block
         $viber_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Viber"[^>]*>\s*<p>Viber<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['viber'])) {
-            $new_viber_contacts = '<a href="' . htmlspecialchars($content['contacts']['viber']) . '" class="contact-social-link">' . "\n" .
+            $new_viber_contacts = '<a href="' . htmlspecialchars($content['contacts']['viber']) . '" target="_blank" rel="noopener noreferrer" class="contact-social-link">' . "\n" .
                                   '                    <div class="text-center">' . "\n" .
                                   '                        <img src="images/viber.png" alt="Viber" class="contact-social-icon">' . "\n" .
                                   '                        <p>Viber</p>' . "\n" .
@@ -380,7 +380,7 @@ function updateIndexHtml($content) {
         // Update Telegram in contacts section - replace entire link block
         $telegram_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Telegram"[^>]*>\s*<p>Telegram<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['telegram'])) {
-            $new_telegram_contacts = '<a href="' . htmlspecialchars($content['contacts']['telegram']) . '" class="contact-social-link">' . "\n" .
+            $new_telegram_contacts = '<a href="' . htmlspecialchars($content['contacts']['telegram']) . '" target="_blank" rel="noopener noreferrer" class="contact-social-link">' . "\n" .
                                      '                    <div class="text-center">' . "\n" .
                                      '                        <img src="images/telegram.png" alt="Telegram" class="contact-social-icon">' . "\n" .
                                      '                        <p>Telegram</p>' . "\n" .

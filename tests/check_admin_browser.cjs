@@ -19,6 +19,7 @@ const assert=require('assert');
   content.email='private-only@example.test';content.hero_title_uk='Тест $1 «тонування»';content.working_hours_saturday_ru='Сб: 11:00 - 16:00';
   let response=await page.request.post(origin+'/admin/content.php',{form:content});assert(response.status()<400,'Content save');
   homepage=await(await page.request.get(origin+'/')).text();assert(homepage.includes('Тест $1 «тонування»'),'Literal hero saved');assert(!/\sstyle\s*=/.test(homepage),'Content publishing must preserve external CSS');
+  assert.equal((homepage.match(/target="_blank" rel="noopener noreferrer"/g)||[]).length,8,'All contact and footer links retain new-tab behavior after saving');
   assert(!homepage.includes('mailto:')&&!homepage.includes('private-only@example.test'),'Email must not be published');
   const translations=await(await page.request.get(origin+'/langs/ru.json')).json();assert(!('email' in translations.contacts),'Email must not leak through translations');assert.equal(translations.footer.working_hours_ru.saturday,'Сб: 11:00 - 16:00');
   await post('gallery.php',{action:'update_site'});await post('films.php',{action:'update_site'});
