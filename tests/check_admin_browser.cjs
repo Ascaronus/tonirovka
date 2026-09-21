@@ -18,7 +18,7 @@ const assert=require('assert');
   await open('content.php');const contentForm=page.locator('form').filter({has:page.locator('[name=hero_title_uk]')});const content=await contentForm.evaluate(f=>Object.fromEntries(new FormData(f)));
   content.hero_title_uk='Тест $1 «тонування»';content.working_hours_saturday_ru='Сб: 11:00 - 16:00';
   let response=await page.request.post(origin+'/admin/content.php',{form:content});assert(response.status()<400,'Content save');
-  homepage=await(await page.request.get(origin+'/')).text();assert(homepage.includes('Тест $1 «тонування»'),'Literal hero saved');
+  homepage=await(await page.request.get(origin+'/')).text();assert(homepage.includes('Тест $1 «тонування»'),'Literal hero saved');assert(!/\sstyle\s*=/.test(homepage),'Content publishing must preserve external CSS');
   const translations=await(await page.request.get(origin+'/langs/ru.json')).json();assert.equal(translations.footer.working_hours_ru.saturday,'Сб: 11:00 - 16:00');
   await post('gallery.php',{action:'update_site'});await post('films.php',{action:'update_site'});
   await post('seo-auto.php',{action:'check_seo'});await post('seo-auto.php',{action:'update_sitemap'});

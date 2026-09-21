@@ -1,0 +1,14 @@
+@page { margin: 15mm; }
+html, body { background: #fff !important; color: #000 !important; }
+* { box-shadow: none !important; text-shadow: none !important; animation: none !important; }
+header, .floating-contacts, .language-switcher, .modal, #cbch_modal_callback_button,
+#cbch_modal_callback, #cbch_modal_callback_background, .back-to-top { display: none !important; }
+section, footer, .hero { background: #fff !important; color: #000 !important; padding: 12pt 0 !important; }
+h1, h2, h3, p, a, td, th { color: #000 !important; }
+.container, .hero-content { width: 100% !important; max-width: none !important; }
+.hero { min-height: 0 !important; height: auto !important; }
+.faq-answer { display: block !important; max-height: none !important; opacity: 1 !important; }
+.film-card, .price-card, .window-film-guide-grid article, tr { break-inside: avoid; }
+h1, h2, h3 { break-after: avoid; }
+img { max-width: 100% !important; }
+.films-container, .window-film-guide-grid, .service-areas-grid { display: block !important; }

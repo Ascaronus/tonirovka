@@ -31,6 +31,11 @@ for tag, attrs in page.tags:
     if tag == 'img':
         assert attrs.get('src') or attrs.get('srcset'), attrs
         assert attrs.get('alt', '').strip(), attrs
+# Public source must use external layout styles, including after admin publishing.
+assert all('style' not in attrs for tag, attrs in page.tags), 'Inline style attributes in public HTML'
+assert not any(tag == 'style' for tag, attrs in page.tags), 'Embedded public CSS'
+assert any(tag == 'link' and a.get('media') == 'print' for tag, a in page.tags), 'Missing print stylesheet'
+assert any(tag == 'link' and a.get('rel') == 'apple-touch-icon' and a.get('sizes') == '180x180' for tag, a in page.tags), 'Missing Apple icon'
 assets = set()
 for tag, a in page.tags:
     url = a.get('src') if tag in ('img', 'script') else a.get('href') if tag in ('a','link') else None

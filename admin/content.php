@@ -282,12 +282,12 @@ function updateIndexHtml($content) {
     
     // Update contact information - more specific patterns to target correct elements
     // Target only the main contacts section, not footer
-    $phone_pattern = '/<div style="text-align: center; margin-top: 40px;">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>/s';
-    $email_pattern = '/<div style="text-align: center; margin-top: 40px;">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>[^<]*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a href="mailto:[^"]*">[^<]*<\/a><\/p>/s';
-    $address_pattern = '/<div style="text-align: center; margin-top: 40px;">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>[^<]*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a href="mailto:[^"]*">[^<]*<\/a><\/p>[^<]*<p[^>]*data-lang-uk="Адреса: [^"]*"[^>]*data-lang-ru="Адрес: [^"]*"[^>]*>Адреса: [^<]*<\/p>/s';
+    $phone_pattern = '/<div class="contact-details">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>/s';
+    $email_pattern = '/<div class="contact-details">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>[^<]*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a href="mailto:[^"]*">[^<]*<\/a><\/p>/s';
+    $address_pattern = '/<div class="contact-details">[^<]*<p[^>]*data-lang-uk="Телефон: [^"]*"[^>]*data-lang-ru="Телефон: [^"]*"[^>]*>Телефон: [^<]*<\/p>[^<]*<p[^>]*data-lang-uk="Email: [^"]*"[^>]*data-lang-ru="Email: [^"]*"[^>]*>Email: <a href="mailto:[^"]*">[^<]*<\/a><\/p>[^<]*<p[^>]*data-lang-uk="Адреса: [^"]*"[^>]*data-lang-ru="Адрес: [^"]*"[^>]*>Адреса: [^<]*<\/p>/s';
     
     // Replace the entire contacts section with new data
-    $new_contacts_section = '<div style="text-align: center; margin-top: 40px;">' . "\n" .
+    $new_contacts_section = '<div class="contact-details">' . "\n" .
                            '                <p data-lang-uk="Телефон: ' . $content['contacts']['phone'] . '" data-lang-ru="Телефон: ' . $content['contacts']['phone'] . '">Телефон: ' . $content['contacts']['phone'] . '</p>' . "\n" .
                            '                <p data-lang-uk="Email: ' . $content['contacts']['email'] . '" data-lang-ru="Email: ' . $content['contacts']['email'] . '">Email: <a href="mailto:' . $content['contacts']['email'] . '">' . $content['contacts']['email'] . '</a></p>' . "\n" .
                            '                <p data-lang-uk="Адреса: ' . $content['contacts']['address_uk'] . '" data-lang-ru="Адрес: ' . $content['contacts']['address_ru'] . '">Адреса: ' . $content['contacts']['address_uk'] . '</p>' . "\n" .
@@ -346,9 +346,9 @@ function updateIndexHtml($content) {
         // Update Facebook in contacts section - replace entire link block
         $facebook_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Facebook"[^>]*>\s*<p>Facebook<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['facebook'])) {
-            $new_facebook_contacts = '<a href="' . htmlspecialchars($content['contacts']['facebook']) . '" style="text-decoration: none; color: #333;">' . "\n" .
-                                    '                    <div style="text-align: center;">' . "\n" .
-                                    '                        <img src="images/facebook.png" alt="Facebook" style="width: 60px; height: 60px; margin-bottom: 10px;">' . "\n" .
+            $new_facebook_contacts = '<a href="' . htmlspecialchars($content['contacts']['facebook']) . '" class="contact-social-link">' . "\n" .
+                                    '                    <div class="text-center">' . "\n" .
+                                    '                        <img src="images/facebook.png" alt="Facebook" class="contact-social-icon">' . "\n" .
                                     '                        <p>Facebook</p>' . "\n" .
                                     '                    </div>' . "\n" .
                                     '                </a>';
@@ -358,9 +358,9 @@ function updateIndexHtml($content) {
         // Update Instagram in contacts section - replace entire link block
         $instagram_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Instagram"[^>]*>\s*<p>Instagram<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['instagram'])) {
-            $new_instagram_contacts = '<a href="' . htmlspecialchars($content['contacts']['instagram']) . '" style="text-decoration: none; color: #333;">' . "\n" .
-                                     '                    <div style="text-align: center;">' . "\n" .
-                                     '                        <img src="images/instagram.png" alt="Instagram" style="width: 60px; height: 60px; margin-bottom: 10px;">' . "\n" .
+            $new_instagram_contacts = '<a href="' . htmlspecialchars($content['contacts']['instagram']) . '" class="contact-social-link">' . "\n" .
+                                     '                    <div class="text-center">' . "\n" .
+                                     '                        <img src="images/instagram.png" alt="Instagram" class="contact-social-icon">' . "\n" .
                                      '                        <p>Instagram</p>' . "\n" .
                                      '                    </div>' . "\n" .
                                      '                </a>';
@@ -370,9 +370,9 @@ function updateIndexHtml($content) {
         // Update Viber in contacts section - replace entire link block
         $viber_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Viber"[^>]*>\s*<p>Viber<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['viber'])) {
-            $new_viber_contacts = '<a href="' . htmlspecialchars($content['contacts']['viber']) . '" style="text-decoration: none; color: #333;">' . "\n" .
-                                  '                    <div style="text-align: center;">' . "\n" .
-                                  '                        <img src="images/viber.png" alt="Viber" style="width: 60px; height: 60px; margin-bottom: 10px;">' . "\n" .
+            $new_viber_contacts = '<a href="' . htmlspecialchars($content['contacts']['viber']) . '" class="contact-social-link">' . "\n" .
+                                  '                    <div class="text-center">' . "\n" .
+                                  '                        <img src="images/viber.png" alt="Viber" class="contact-social-icon">' . "\n" .
                                   '                        <p>Viber</p>' . "\n" .
                                   '                    </div>' . "\n" .
                                   '                </a>';
@@ -382,9 +382,9 @@ function updateIndexHtml($content) {
         // Update Telegram in contacts section - replace entire link block
         $telegram_contacts_pattern = '/<a href="[^"]*"[^>]*>\s*<div[^>]*>\s*<img[^>]*alt="Telegram"[^>]*>\s*<p>Telegram<\/p>\s*<\/div>\s*<\/a>/s';
         if (!empty($content['contacts']['telegram'])) {
-            $new_telegram_contacts = '<a href="' . htmlspecialchars($content['contacts']['telegram']) . '" style="text-decoration: none; color: #333;">' . "\n" .
-                                     '                    <div style="text-align: center;">' . "\n" .
-                                     '                        <img src="images/telegram.png" alt="Telegram" style="width: 60px; height: 60px; margin-bottom: 10px;">' . "\n" .
+            $new_telegram_contacts = '<a href="' . htmlspecialchars($content['contacts']['telegram']) . '" class="contact-social-link">' . "\n" .
+                                     '                    <div class="text-center">' . "\n" .
+                                     '                        <img src="images/telegram.png" alt="Telegram" class="contact-social-icon">' . "\n" .
                                      '                        <p>Telegram</p>' . "\n" .
                                      '                    </div>' . "\n" .
                                      '                </a>';

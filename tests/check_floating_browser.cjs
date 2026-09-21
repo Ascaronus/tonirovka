@@ -14,6 +14,14 @@ const assert = require('assert');
    const b=await link.boundingBox();assert(b.width>=44 && b.height>=44 && b.x>=0 && b.x+b.width<=width);
    assert(await link.getAttribute('aria-label'));
   }
+  if(width===1440){
+   await page.emulateMedia({media:'print'});
+   assert(await page.locator('header').isHidden(),'Hide navigation in print');
+   assert(await bar.isHidden(),'Hide floating contacts in print');
+   assert(await page.locator('.faq-answer').first().isVisible(),'Expand FAQ in print');
+   assert(await page.locator('#contacts .contact-details').isVisible(),'Keep contact details in print');
+   await page.emulateMedia({media:'screen'});
+  }
   await page.evaluate(()=>{const callback=document.createElement('button');callback.id='cbch_modal_callback_button';callback.style.cssText='position:fixed;bottom:16px;left:8px;width:180px;height:70px;z-index:1000';if(window.innerWidth>600){callback.style.left='50%';callback.style.transform='translateX(-50%)';}callback.textContent='Callback fixture';document.body.append(callback);});
   await page.waitForTimeout(150);
   const a=await bar.boundingBox(),b=await page.locator('#cbch_modal_callback_button').boundingBox();assert(a.y+a.height<=b.y-10,'Callback collision at '+width);
