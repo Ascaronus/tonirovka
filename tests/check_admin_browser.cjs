@@ -8,6 +8,16 @@ const assert=require('assert');
  try{
   await open('index.php');await page.locator('[name=username]').fill('audit');await page.locator('[name=password]').fill('Audit-Only-12345');await Promise.all([page.waitForNavigation(),page.locator('button').click()]);
   for(const file of ['index.php','content.php','prices.php','films.php','gallery.php','guide.php','settings.php','logs.php','export_logs.php','seo-auto.php','setup-seo-monitoring.php','contact-stats.php','check_gd.php','changelog.php']){await open(file);console.log('Admin GET: '+file);}
+  // Empty DB tracking settings must not erase an already published Google tag.
+  await open('settings.php');
+  assert.equal(await page.locator('[name=google_analytics]').inputValue(),'G-3DGGH7S5NP');
+  const verification=await page.locator('[name=google_verification]').inputValue();assert(verification.length>10);
+  const settingsForm=page.locator('form').filter({has:page.locator('[name=google_analytics]')});
+  const settingsFields=await settingsForm.evaluate(f=>Object.fromEntries(new FormData(f)));
+  const saved=await page.request.post(origin+'/admin/settings.php',{form:settingsFields});assert.equal(saved.status(),200);
+  const published=await(await page.request.get(origin+'/')).text();
+  assert.equal((published.match(/src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=G-3DGGH7S5NP"/g)||[]).length,1,'One Google tag survives settings save');
+  assert(published.includes('google-site-verification" content="'+verification+'"'),'Search Console token preserved');
   // Each mutation starts from a fresh form revision.
   await post('prices.php',{action:'add',name_uk:'Тест $1 «ціна»',name_ru:'Тест $1 цена',price:'900-1000 ₴'});
   let homepage=await(await page.request.get(origin+'/')).text();assert(homepage.includes('Тест $1 «ціна»'),'Literal price title preserved');

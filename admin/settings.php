@@ -182,6 +182,20 @@ function extractSettingsFromIndex() {
         $settings['site']['keywords_ru'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
     
+    // The published gtag ID is authoritative, even when the DB setting is empty.
+    require_once __DIR__.'/seo_tools.php';
+    $xp=seoDocument($content);
+    foreach($xp->query('//script[@src]') as $script) {
+        $url=parse_url(html_entity_decode($script->getAttribute('src'),ENT_QUOTES|ENT_HTML5,'UTF-8'));
+        if(($url['host']??'')==='www.googletagmanager.com' && ($url['path']??'')==='/gtag/js') {
+            parse_str($url['query']??'', $query);
+            if(is_string($query['id']??null) && preg_match('/^G-[A-Z0-9]+$/D',$query['id'])) {
+                $settings['seo']['google_analytics']=$query['id'];
+                break;
+            }
+        }
+    }
+
     // Извлекаем Google verification
     if (preg_match('/<meta name="google-site-verification"[^>]*content="([^"]*)"[^>]*>/', $content, $matches)) {
         $settings['seo']['google_verification'] = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -502,6 +516,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]
         ];
         
+        $settings['seo']['google_analytics']=trim($settings['seo']['google_analytics']);
+        if($settings['seo']['google_analytics']!=='' && !preg_match('/^G-[A-Z0-9]+$/D',$settings['seo']['google_analytics'])) adminFail('Укажите идентификатор GA4 в формате G-XXXXXXXX.',400);
+
         // Сохраняем в БД
         $db_saved = false;
         $pdo = getDBConnection();
