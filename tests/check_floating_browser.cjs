@@ -27,6 +27,10 @@ const assert = require('assert');
   await page.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded'});
   const bar=page.locator('#floating-contacts');await bar.waitFor({state:'visible'});
   assert.equal(await bar.locator('a').count(),5);
+  for (const button of await page.locator('.contact-phone-action').all()) {
+   assert.equal((await button.textContent()).trim(),'','Phone buttons contain no visible label');
+   assert.equal(await button.locator('svg').count(),1,'Phone has a real SVG');
+  }
   if(width>600){const box=await bar.boundingBox();assert(Math.abs(box.x+box.width/2-width/2)<1,'Desktop centered');assert.equal((await bar.locator('img').first().boundingBox()).width,60);}else{assert.equal((await bar.locator('img').first().boundingBox()).width,36);}
   for(const link of await bar.locator('a').all()) {
    const b=await link.boundingBox();assert(b.width>=44 && b.height>=44 && b.x>=0 && b.x+b.width<=width);
@@ -44,6 +48,7 @@ const assert = require('assert');
    await page.locator('#uk-lang').click();
    await page.waitForFunction(text=>document.querySelector('#window-film-guide article p').textContent===text,uk);
 
+   for (const button of await page.locator('.contact-phone-action').all()) assert.equal((await button.textContent()).trim(),'','Language switching preserves icons');
    await page.emulateMedia({media:'print'});
    assert(await page.locator('header').isHidden(),'Hide navigation in print');
    assert(await bar.isHidden(),'Hide floating contacts in print');
