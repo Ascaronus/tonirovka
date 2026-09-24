@@ -335,7 +335,7 @@ function updateIndexHtml($content) {
     }
     $phone_number = preg_replace('/[^+0-9]/', '', $content['contacts']['phone'] ?? '');
     if ($phone_number !== '') {
-        $new_social_links .= '<a href="tel:' . htmlspecialchars($phone_number, ENT_QUOTES, 'UTF-8') . '" class="contact-phone-action" data-lang-uk="☎ Зателефонувати" data-lang-ru="☎ Позвонить">☎ Зателефонувати</a>' . "\n";
+        $new_social_links .= '<a href="tel:' . htmlspecialchars($phone_number, ENT_QUOTES, 'UTF-8') . '" class="contact-phone-action" data-lang-uk="Зателефонувати" data-lang-ru="Позвонить">Зателефонувати</a>' . "\n";
     }
     $new_social_links .= '                    </div>';
     $html_content = preg_replace_callback($social_links_pattern, fn() => $new_social_links, $html_content);

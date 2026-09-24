@@ -26,7 +26,7 @@
                 if (number) link.href = 'tel:' + number;
                 else link.removeAttribute('href');
                 link.hidden = !number;
-                link.textContent = link === phone ? '☎' : '☎ ' + label;
+                link.textContent = label;
                 link.title = label;
                 link.setAttribute('aria-label', label + (number ? ' ' + number : ''));
             });
