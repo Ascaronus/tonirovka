@@ -27,13 +27,19 @@ const assert = require('assert');
   await page.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded'});
   const bar=page.locator('#floating-contacts');await bar.waitFor({state:'visible'});
   assert.equal(await bar.locator('a').count(),5);
-  const contactsPhoneBox=await page.locator('#contacts .contact-phone-action').boundingBox();
+  const contactsPhoneBox=await page.locator('#contacts .contact-phone-circle').boundingBox();
   const contactsIconBox=await page.locator('#contacts .contact-social-icon').first().boundingBox();
   assert.equal(contactsPhoneBox.width,60,'Contacts phone stays 60px wide at '+width);
   assert.equal(contactsPhoneBox.height,60,'Contacts phone stays circular at '+width);
   assert.equal(contactsPhoneBox.width,contactsIconBox.width,'Match contact icon size');
   if(width===1440) assert(Math.abs(contactsPhoneBox.y-contactsIconBox.y)<1,'Contact icons share top alignment');
-  for (const button of await page.locator('.contact-phone-action').all()) {
+  assert.equal(await page.locator('#contacts .contact-phone-caption').textContent(),'Зателефонувати');
+  if(width===1440) {
+   const caption=await page.locator('#contacts .contact-phone-caption').boundingBox();
+   const socialCaption=await page.locator('#contacts .contact-social-link p').first().boundingBox();
+   assert(Math.abs(caption.y-socialCaption.y)<1,'Contacts captions share a baseline');
+  }
+  for (const button of await page.locator('footer .contact-phone-action, #floating-contacts .contact-phone-action').all()) {
    assert.equal((await button.textContent()).trim(),'','Phone buttons contain no visible label');
    assert.equal(await button.locator('svg').count(),1,'Phone has a real SVG');
   }
@@ -51,10 +57,11 @@ const assert = require('assert');
    const uk=await guide.textContent(),ru=await guide.getAttribute('data-lang-ru');
    await page.locator('#ru-lang').click();
    await page.waitForFunction(text=>document.querySelector('#window-film-guide article p').textContent===text,ru);
+   await page.waitForFunction(()=>document.querySelector('#contacts .contact-phone-caption').textContent==='Позвонить');
    await page.locator('#uk-lang').click();
    await page.waitForFunction(text=>document.querySelector('#window-film-guide article p').textContent===text,uk);
 
-   for (const button of await page.locator('.contact-phone-action').all()) assert.equal((await button.textContent()).trim(),'','Language switching preserves icons');
+   for (const button of await page.locator('footer .contact-phone-action, #floating-contacts .contact-phone-action').all()) assert.equal((await button.textContent()).trim(),'','Language switching preserves icons');
    await page.emulateMedia({media:'print'});
    assert(await page.locator('header').isHidden(),'Hide navigation in print');
    assert(await bar.isHidden(),'Hide floating contacts in print');
