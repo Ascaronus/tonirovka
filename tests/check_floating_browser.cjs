@@ -27,6 +27,12 @@ const assert = require('assert');
   await page.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded'});
   const bar=page.locator('#floating-contacts');await bar.waitFor({state:'visible'});
   assert.equal(await bar.locator('a').count(),5);
+  const contactsPhoneBox=await page.locator('#contacts .contact-phone-action').boundingBox();
+  const contactsIconBox=await page.locator('#contacts .contact-social-icon').first().boundingBox();
+  assert.equal(contactsPhoneBox.width,60,'Contacts phone stays 60px wide at '+width);
+  assert.equal(contactsPhoneBox.height,60,'Contacts phone stays circular at '+width);
+  assert.equal(contactsPhoneBox.width,contactsIconBox.width,'Match contact icon size');
+  if(width===1440) assert(Math.abs(contactsPhoneBox.y-contactsIconBox.y)<1,'Contact icons share top alignment');
   for (const button of await page.locator('.contact-phone-action').all()) {
    assert.equal((await button.textContent()).trim(),'','Phone buttons contain no visible label');
    assert.equal(await button.locator('svg').count(),1,'Phone has a real SVG');
