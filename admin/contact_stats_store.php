@@ -1,5 +1,5 @@
 <?php
-function contactServices() { return ['facebook'=>'Facebook', 'instagram'=>'Instagram', 'viber'=>'Viber', 'telegram'=>'Telegram']; }
+function contactServices() { return ['facebook'=>'Facebook', 'instagram'=>'Instagram', 'viber'=>'Viber', 'telegram'=>'Telegram', 'phone'=>'Позвонить']; }
 function contactPlaces() { return ['contacts'=>'Контакты', 'footer'=>'Подвал', 'floating'=>'Плавающие кнопки']; }
 function contactToday() { return (new DateTimeImmutable('now', new DateTimeZone('Europe/Kyiv')))->format('Y-m-d'); }
 function contactStatsPath() { return dirname(__DIR__) . '/data/contact-clicks.json'; }

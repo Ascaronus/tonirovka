@@ -8,7 +8,10 @@ try {
     contactRecord('telegram', 'contacts', $path); contactRecord('telegram', 'contacts', $path);
     contactRecord('telegram', 'footer', $path); contactRecord('viber', 'footer', $path);
     contactRecord('facebook', 'floating', $path);
+    contactRecord('phone', 'floating', $path); contactRecord('phone', 'footer', $path);
     $data = contactReadStats($path); $today = contactToday();
+    ensure(contactSummary($data, $today, $today)['totals']['phone'] === 2, 'Telephone aggregation');
+    ensure(contactSummary($data, $today, $today, 'footer')['totals']['phone'] === 1, 'Telephone footer filter');
     ensure(contactSummary($data, $today, $today, 'floating')['totals']['facebook'] === 1, 'Floating filter');
     ensure(contactSummary($data, $today, $today)['totals']['telegram'] === 3, 'Total aggregation');
     ensure(contactSummary($data, $today, $today, 'footer')['totals']['telegram'] === 1, 'Position filter');
@@ -30,6 +33,7 @@ foreach (['contact-stats.php','guide.php'] as $page) {
     $html=implode("\n",$lines); $lines=[];
     ensure($status===0 && strpos($html,'Fatal error')===false && strpos($html,'Warning:')===false, 'Admin page PHP: '.$html);
     ensure(strpos($html,'href="contact-stats.php"')!==false && strpos($html,'assets/admin.css')!==false, 'Shared menu and styles');
+    if ($page === 'contact-stats.php') ensure(strpos($html, 'Позвонить') !== false, 'Phone card in admin');
     ensure(strpos($html, $page==='guide.php'?'Карточка 8':'Статистика контактов')!==false, 'Page content');
 }
 echo "Contact aggregate, validation, storage and admin render checks passed\n";

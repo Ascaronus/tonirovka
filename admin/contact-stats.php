@@ -20,7 +20,7 @@ $summary = contactSummary($data, $from, $to, $place);
 $page_title = '📈 Нажатия на контакты';
 include __DIR__ . '/header.php';
 ?>
-<div class="page-intro"><div><h2>Статистика контактов</h2><p class="muted">Facebook, Instagram, Viber и Telegram · время Киева</p></div><span class="period-total">Всего за период: <strong><?=array_sum($summary['totals'])?></strong></span></div>
+<div class="page-intro"><div><h2>Статистика контактов</h2><p class="muted">Facebook, Instagram, Viber, Telegram и звонки · время Киева</p></div><span class="period-total">Всего за период: <strong><?=array_sum($summary['totals'])?></strong></span></div>
 <?php if ($error): ?><div class="error" role="alert"><?=statsEscape($error)?></div><?php endif ?>
 <?php if (!is_writable(dirname(contactStatsPath()))): ?><div class="error">Каталог data недоступен PHP для записи. Нажатия не смогут сохраняться, пока не будут исправлены права доступа.</div><?php endif ?>
 <form method="get" class="stats-filters">
@@ -33,5 +33,5 @@ include __DIR__ . '/header.php';
 <h3>Нажатия по дням</h3>
 <?php if (!$summary['rows']): ?><div class="empty-state"><strong>За этот период нажатий пока нет</strong><p>Статистика начнёт собираться после установки обновлений на сайт. Прошлые переходы восстановить нельзя.</p></div>
 <?php else: ?><div class="table-scroll"><table class="stats-table"><thead><tr><th>Дата</th><?php foreach(contactServices() as $label): ?><th><?=$label?></th><?php endforeach ?><th>Всего</th></tr></thead><tbody><?php foreach($summary['rows'] as $day=>$counts): ?><tr><td><?=statsEscape($day)?></td><?php foreach($counts as $count): ?><td><?=$count?></td><?php endforeach ?><td><strong><?=array_sum($counts)?></strong></td></tr><?php endforeach ?></tbody></table></div><?php endif ?>
-<p class="muted stats-note">Учитываются нажатия, а не уникальные люди, сообщения или подписки. Быстрые повторные нажатия на одну кнопку в течение секунды объединяются. Автоматические запросы и блокировщики могут влиять на точность. IP, cookies и персональные данные счётчик не сохраняет. Хранятся дневные итоги за последние 730 дней.<?php if($data['started']): ?> Первое нажатие: <?=statsEscape($data['started'])?>.<?php endif ?></p>
+<p class="muted stats-note">Учитываются нажатия, а не уникальные люди, сообщения, подписки или состоявшиеся звонки. Быстрые повторные нажатия на одну кнопку в течение секунды объединяются. Автоматические запросы и блокировщики могут влиять на точность. IP, cookies и персональные данные счётчик не сохраняет. Хранятся дневные итоги за последние 730 дней.<?php if($data['started']): ?> Первое нажатие: <?=statsEscape($data['started'])?>.<?php endif ?></p>
 <?php include __DIR__ . '/footer.php'; ?>

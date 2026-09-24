@@ -319,7 +319,7 @@ function updateIndexHtml($content) {
     $html_content = preg_replace_callback($footer_hours_pattern, fn() => $new_footer_hours, $html_content);
     
     // Update social links in footer
-    $social_links_pattern = '/<div class="social-links">\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<a href="[^"]*"[^>]*><i>[^<]*<\/i><\/a>\s*<\/div>/s';
+    $social_links_pattern = '/<div class="social-links">\s*.*?<\/div>/s';
     $new_social_links = '<div class="social-links">' . "\n";
     if (!empty($content['contacts']['facebook'])) {
         $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['facebook']) . '" target="_blank" rel="noopener noreferrer"><i>FB</i></a>' . "\n";
@@ -332,6 +332,10 @@ function updateIndexHtml($content) {
     }
     if (!empty($content['contacts']['telegram'])) {
         $new_social_links .= '                        <a href="' . htmlspecialchars($content['contacts']['telegram']) . '" target="_blank" rel="noopener noreferrer"><i>TG</i></a>' . "\n";
+    }
+    $phone_number = preg_replace('/[^+0-9]/', '', $content['contacts']['phone'] ?? '');
+    if ($phone_number !== '') {
+        $new_social_links .= '<a href="tel:' . htmlspecialchars($phone_number, ENT_QUOTES, 'UTF-8') . '" class="contact-phone-action" data-lang-uk="☎ Зателефонувати" data-lang-ru="☎ Позвонить">☎ Зателефонувати</a>' . "\n";
     }
     $new_social_links .= '                    </div>';
     $html_content = preg_replace_callback($social_links_pattern, fn() => $new_social_links, $html_content);

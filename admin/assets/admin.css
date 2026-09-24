@@ -49,7 +49,7 @@ button:hover { background: #218838; }
 .stats-filters select { margin-top:6px; }
 .period-links { display:flex; gap:12px; margin:16px 0 24px; }
 .period-links a { color:#0069d9; }
-.stats-cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.stats-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; }
 .stat-number { display:block; font-size:36px; margin:12px 0; color:#0056b3; }
 .table-scroll { overflow-x:auto; }
 .stats-table { border-collapse:collapse; width:100%; }

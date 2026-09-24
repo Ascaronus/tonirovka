@@ -11,7 +11,7 @@
         try { url = new URL(link.href, location.href); } catch (_) { return; }
         const host = url.hostname.toLowerCase().replace(/^www\./, '');
         const web = url.protocol === 'https:' || url.protocol === 'http:';
-        const service = url.protocol === 'viber:' ? 'viber' : url.protocol === 'tg:' ? 'telegram' : web && ['t.me', 'telegram.me'].includes(host) ? 'telegram' : web && ['facebook.com', 'm.facebook.com', 'fb.com'].includes(host) ? 'facebook' : web && host === 'instagram.com' ? 'instagram' : null;
+        const service = url.protocol === 'tel:' ? 'phone' : url.protocol === 'viber:' ? 'viber' : url.protocol === 'tg:' ? 'telegram' : web && ['t.me', 'telegram.me'].includes(host) ? 'telegram' : web && ['facebook.com', 'm.facebook.com', 'fb.com'].includes(host) ? 'facebook' : web && host === 'instagram.com' ? 'instagram' : null;
         if (!service) return;
         const key = service + ':' + place, now = Date.now();
         if (lastClicks.has(key) && now - lastClicks.get(key) < 1000) return;

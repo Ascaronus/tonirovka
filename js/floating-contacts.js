@@ -13,18 +13,20 @@
         const phone = document.createElement('a');
         phone.className = 'contact-phone-action';
         phone.hidden = true;
-        const footerPhone = phone.cloneNode();
-        document.querySelector('footer .social-links')?.appendChild(footerPhone);
+        const footerPhone = document.querySelector('footer .contact-phone-action') || phone.cloneNode();
+        if (!footerPhone.isConnected) document.querySelector('footer .social-links')?.appendChild(footerPhone);
+        const contactsPhone = phone.cloneNode();
+        source.appendChild(contactsPhone);
         function syncPhone() {
             const text = document.querySelector('#contacts .contact-details')?.textContent || '';
             const match = text.match(/\+?[\d][\d ()-]{8,}[\d]/);
             const number = match ? match[0].replace(/[^+\d]/g, '') : '';
             const label = document.documentElement.lang === 'ru' ? 'Позвонить' : 'Зателефонувати';
-            [phone, footerPhone].forEach(link => {
+            [phone, footerPhone, contactsPhone].forEach(link => {
                 if (number) link.href = 'tel:' + number;
                 else link.removeAttribute('href');
                 link.hidden = !number;
-                link.textContent = '☎';
+                link.textContent = link === phone ? '☎' : '☎ ' + label;
                 link.title = label;
                 link.setAttribute('aria-label', label + (number ? ' ' + number : ''));
             });
