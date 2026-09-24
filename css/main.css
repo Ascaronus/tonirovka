@@ -637,8 +637,11 @@ footer {
     .floating-contacts img { width:60px; height:60px; }
 }
 
-/* Independent telephone fallback when the optional callback widget is unavailable. */
-.contact-phone-action { position:fixed; right:12px; bottom:16px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:991; display:flex; align-items:center; justify-content:center; min-height:44px; padding:0 12px; border-radius:24px; background:#0066cc; color:#fff; font:600 14px/1.2 Arial,sans-serif; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+/* Direct-call shortcut aligned with the messenger icons. */
+.contact-phone-action { display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:#0066cc; color:#fff; text-decoration:none; }
 .contact-phone-action[hidden] { display:none; }
-.contact-phone-action:focus-visible { outline:3px solid #111; outline-offset:3px; }
-@media print { .contact-phone-action { display:none !important; } }
+.floating-contacts .contact-phone-action { font:40px/1 Arial,sans-serif; width:60px; height:60px; flex-basis:60px; align-self:center; margin:0 6px; }
+footer .social-links .contact-phone-action { min-width:44px; min-height:44px; font:28px/1 Arial,sans-serif; }
+footer .social-links { flex-wrap:wrap; }
+.contact-phone-action:focus-visible { outline:3px solid #0066cc; outline-offset:3px; }
+@media (max-width:600px) { .floating-contacts .contact-phone-action { width:44px; height:44px; flex-basis:44px; margin:0; font-size:30px; } }

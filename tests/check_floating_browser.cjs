@@ -14,7 +14,7 @@ const assert = require('assert');
  try {
   await pending.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded',timeout:10000});
   await pending.locator('#floating-contacts').waitFor({state:'visible',timeout:3000});
-  const telephone=pending.locator('.contact-phone-action');
+  const telephone=pending.locator('#floating-contacts .contact-phone-action');
   assert(await telephone.isVisible(),'Phone remains available while callback is pending');
   assert((await telephone.getAttribute('href')).startsWith('tel:+380'),'Published telephone is used');
   await pending.locator('.faq-question').first().click();
@@ -26,13 +26,15 @@ const assert = require('assert');
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
   await page.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded'});
   const bar=page.locator('#floating-contacts');await bar.waitFor({state:'visible'});
-  assert.equal(await bar.locator('a').count(),4);
+  assert.equal(await bar.locator('a').count(),5);
   if(width>600){const box=await bar.boundingBox();assert(Math.abs(box.x+box.width/2-width/2)<1,'Desktop centered');assert.equal((await bar.locator('img').first().boundingBox()).width,60);}else{assert.equal((await bar.locator('img').first().boundingBox()).width,36);}
   for(const link of await bar.locator('a').all()) {
    const b=await link.boundingBox();assert(b.width>=44 && b.height>=44 && b.x>=0 && b.x+b.width<=width);
    assert(await link.getAttribute('aria-label'));
-   assert.equal(await link.getAttribute('target'),'_blank');
-   assert((await link.getAttribute('rel')).includes('noopener'));
+   if (!(await link.getAttribute('href')).startsWith('tel:')) {
+    assert.equal(await link.getAttribute('target'),'_blank');
+    assert((await link.getAttribute('rel')).includes('noopener'));
+   }
   }
   if(width===1440){
    const guide=page.locator('#window-film-guide article p').first();
@@ -51,7 +53,7 @@ const assert = require('assert');
   }
   await page.evaluate(()=>{const callback=document.createElement('button');callback.id='cbch_modal_callback_button';callback.style.cssText='position:fixed;bottom:16px;left:8px;width:180px;height:70px;z-index:1000';if(window.innerWidth>600){callback.style.left='50%';callback.style.transform='translateX(-50%)';}callback.textContent='Callback fixture';document.body.append(callback);});
   await page.waitForTimeout(150);
-  assert(await page.locator('.contact-phone-action').isHidden(),'Hide fallback when provider is available');
+  assert(await bar.locator('.contact-phone-action').isVisible(),'Direct calling remains next to messengers with provider available');
   const a=await bar.boundingBox(),b=await page.locator('#cbch_modal_callback_button').boundingBox();assert(a.y+a.height<=b.y-10,'Callback collision at '+width);
   if(width===1440 || width===375){
    const originalUrl=page.url();
@@ -72,6 +74,8 @@ const assert = require('assert');
   await page.waitForFunction(()=>document.querySelector('#floating-contacts a[aria-label="Instagram"]').href.includes('updated-account'));
   await page.locator('#contacts .contacts-container').scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('#floating-contacts').hidden);
   await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));await page.waitForTimeout(100);assert(await bar.isHidden());
+  assert(await page.locator('footer .contact-phone-action').isVisible(),'Footer has its own direct call');
+  assert.equal(await page.locator('footer .contact-phone-action').getAttribute('href'),await bar.locator('.contact-phone-action').getAttribute('href')); 
   await page.evaluate(()=>window.scrollTo(0,0));await bar.waitFor({state:'visible'});
   await page.evaluate(()=>{const overlay=document.createElement('div');overlay.id='cbch_modal_callback_background';document.body.append(overlay);});await page.waitForFunction(()=>document.querySelector('#floating-contacts').hidden);
   await page.evaluate(()=>document.getElementById('cbch_modal_callback_background').remove());await bar.waitFor({state:'visible'});

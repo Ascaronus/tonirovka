@@ -6,22 +6,28 @@
         const bar = document.createElement('nav');
         bar.id = 'floating-contacts';
         bar.className = 'floating-contacts';
-        bar.setAttribute('aria-label', 'Facebook, Instagram, Viber, Telegram');
+        bar.setAttribute('aria-label', 'Facebook, Instagram, Viber, Telegram, телефон');
         bar.hidden = true;
         document.body.appendChild(bar);
-        // Keep a first-party telephone action available if the optional provider fails.
+        // Direct calling stays next to messengers, independent of the callback provider.
         const phone = document.createElement('a');
         phone.className = 'contact-phone-action';
         phone.hidden = true;
-        document.body.appendChild(phone);
+        const footerPhone = phone.cloneNode();
+        document.querySelector('footer .social-links')?.appendChild(footerPhone);
         function syncPhone() {
             const text = document.querySelector('#contacts .contact-details')?.textContent || '';
             const match = text.match(/\+?[\d][\d ()-]{8,}[\d]/);
             const number = match ? match[0].replace(/[^+\d]/g, '') : '';
-            if (number) phone.href = 'tel:' + number;
-            else phone.removeAttribute('href');
-            phone.textContent = document.documentElement.lang === 'ru' ? '☎ Позвонить' : '☎ Зателефонувати';
-            phone.setAttribute('aria-label', phone.textContent + (number ? ' ' + number : ''));
+            const label = document.documentElement.lang === 'ru' ? 'Позвонить' : 'Зателефонувати';
+            [phone, footerPhone].forEach(link => {
+                if (number) link.href = 'tel:' + number;
+                else link.removeAttribute('href');
+                link.hidden = !number;
+                link.textContent = '☎';
+                link.title = label;
+                link.setAttribute('aria-label', label + (number ? ' ' + number : ''));
+            });
             schedule();
         }
         let scheduled = false;
@@ -36,10 +42,9 @@
             // Stay hidden after reaching the original row, including throughout the footer.
             bar.hidden = !bar.children.length || source.getBoundingClientRect().top < window.innerHeight - 16 || editing || modal;
             const provider = document.getElementById('cbch_modal_callback_button');
-            phone.hidden = !phone.hasAttribute('href') || editing || modal || !!(visible(provider) && provider.getClientRects().length);
             if (bar.hidden) return;
             bar.style.removeProperty('bottom');
-            const callback = phone.hidden ? provider : phone;
+            const callback = provider;
             if (visible(callback)) {
                 const a = bar.getBoundingClientRect(), b = callback.getBoundingClientRect();
                 if (b.width && b.height && a.left < b.right + 12 && a.right > b.left - 12 && a.top < b.bottom + 12 && a.bottom > b.top - 12) {
@@ -67,7 +72,7 @@
                 icon.width = 40; icon.height = 40;
                 link.appendChild(icon); links.push(link);
             });
-            bar.replaceChildren(...links);
+            bar.replaceChildren(...links, phone);
             schedule();
         }
         syncLinks();
