@@ -9,6 +9,21 @@
         bar.setAttribute('aria-label', 'Facebook, Instagram, Viber, Telegram');
         bar.hidden = true;
         document.body.appendChild(bar);
+        // Keep a first-party telephone action available if the optional provider fails.
+        const phone = document.createElement('a');
+        phone.className = 'contact-phone-action';
+        phone.hidden = true;
+        document.body.appendChild(phone);
+        function syncPhone() {
+            const text = document.querySelector('#contacts .contact-details')?.textContent || '';
+            const match = text.match(/\+?[\d][\d ()-]{8,}[\d]/);
+            const number = match ? match[0].replace(/[^+\d]/g, '') : '';
+            if (number) phone.href = 'tel:' + number;
+            else phone.removeAttribute('href');
+            phone.textContent = document.documentElement.lang === 'ru' ? '☎ Позвонить' : '☎ Зателефонувати';
+            phone.setAttribute('aria-label', phone.textContent + (number ? ' ' + number : ''));
+            schedule();
+        }
         let scheduled = false;
         function visible(element) {
             return element && getComputedStyle(element).display !== 'none' && getComputedStyle(element).visibility !== 'hidden';
@@ -20,9 +35,11 @@
             const modal = visible(document.getElementById('cbch_modal_callback_background')) || visible(document.getElementById('cbch_modal_callback')) || visible(document.getElementById('imageModal'));
             // Stay hidden after reaching the original row, including throughout the footer.
             bar.hidden = !bar.children.length || source.getBoundingClientRect().top < window.innerHeight - 16 || editing || modal;
+            const provider = document.getElementById('cbch_modal_callback_button');
+            phone.hidden = !phone.hasAttribute('href') || editing || modal || !!(visible(provider) && provider.getClientRects().length);
             if (bar.hidden) return;
             bar.style.removeProperty('bottom');
-            const callback = document.getElementById('cbch_modal_callback_button');
+            const callback = phone.hidden ? provider : phone;
             if (visible(callback)) {
                 const a = bar.getBoundingClientRect(), b = callback.getBoundingClientRect();
                 if (b.width && b.height && a.left < b.right + 12 && a.right > b.left - 12 && a.top < b.bottom + 12 && a.bottom > b.top - 12) {
@@ -54,6 +71,10 @@
             schedule();
         }
         syncLinks();
+        syncPhone();
+        const details = document.querySelector('#contacts .contact-details');
+        if (details) new MutationObserver(syncPhone).observe(details, {subtree:true, childList:true, characterData:true});
+        new MutationObserver(syncPhone).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
         new MutationObserver(syncLinks).observe(source, {subtree:true, childList:true, attributes:true, attributeFilter:['href','src','target','rel']});
         window.addEventListener('scroll', schedule, {passive:true});
         window.addEventListener('resize', schedule);

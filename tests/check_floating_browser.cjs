@@ -3,6 +3,24 @@ const assert = require('assert');
 (async()=>{
  const browser = await chromium.launch({headless:true,args:['--no-sandbox']});
  try {
+ // A hung third-party callback must not hold DOMContentLoaded or local controls.
+ const pending=await browser.newPage({viewport:{width:375,height:850}});
+ let releaseCallback;
+ const held=new Promise(resolve=>{releaseCallback=resolve;});
+ await pending.route('**/*',async route=>{
+  if(route.request().url().startsWith('https://callback.cityhost.ua/js/')) {await held;return route.abort();}
+  return new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort();
+ });
+ try {
+  await pending.goto('http://127.0.0.1:8080/',{waitUntil:'domcontentloaded',timeout:10000});
+  await pending.locator('#floating-contacts').waitFor({state:'visible',timeout:3000});
+  const telephone=pending.locator('.contact-phone-action');
+  assert(await telephone.isVisible(),'Phone remains available while callback is pending');
+  assert((await telephone.getAttribute('href')).startsWith('tel:+380'),'Published telephone is used');
+  await pending.locator('.faq-question').first().click();
+  assert(await pending.locator('.faq-answer').first().isVisible(),'FAQ works while callback is pending');
+ } finally { releaseCallback();await pending.close(); }
+ console.log('Pending callback does not block DOMContentLoaded, contacts or FAQ');
  for (const width of [320,375,390,768,1440]) {
   const page=await browser.newPage({viewport:{width,height:850},isMobile:width<600,hasTouch:width<600});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
@@ -33,6 +51,7 @@ const assert = require('assert');
   }
   await page.evaluate(()=>{const callback=document.createElement('button');callback.id='cbch_modal_callback_button';callback.style.cssText='position:fixed;bottom:16px;left:8px;width:180px;height:70px;z-index:1000';if(window.innerWidth>600){callback.style.left='50%';callback.style.transform='translateX(-50%)';}callback.textContent='Callback fixture';document.body.append(callback);});
   await page.waitForTimeout(150);
+  assert(await page.locator('.contact-phone-action').isHidden(),'Hide fallback when provider is available');
   const a=await bar.boundingBox(),b=await page.locator('#cbch_modal_callback_button').boundingBox();assert(a.y+a.height<=b.y-10,'Callback collision at '+width);
   if(width===1440 || width===375){
    const originalUrl=page.url();
